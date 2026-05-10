@@ -1,0 +1,5112 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>White Wave — Réservation & Badges</title>
+    <script
+      src="https://unpkg.com/react@18/umd/react.production.min.js"
+      crossorigin
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
+      crossorigin
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <!-- SUPABASE CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;900&family=Playfair+Display:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ww-cyan: #06b6d4;
+        --ww-cyan-light: #67e8f9;
+        --ww-cyan-dark: #0891b2;
+        --ww-teal: #14b8a6;
+        --ww-teal-light: #5eead4;
+        --ww-ocean: #0ea5e9;
+        --ww-ocean-dark: #0284c7;
+        --ww-white: #f8fafc;
+        --ww-snow: #e2e8f0;
+        --ww-frost: #cbd5e1;
+        --ww-pearl: #f1f5f9;
+        --ww-ink: #0f172a;
+        --ww-ink-soft: #1e293b;
+        --ww-ink-muted: #334155;
+        --ww-glass: rgba(255, 255, 255, 0.65);
+        --ww-glass-border: rgba(255, 255, 255, 0.4);
+        --ww-shadow: rgba(6, 182, 212, 0.15);
+        --ww-text: #0f172a;
+        --ww-text-secondary: #475569;
+        --ww-card-bg: rgba(255, 255, 255, 0.72);
+        --ww-input-bg: rgba(255, 255, 255, 0.85);
+        --ww-input-border: rgba(203, 213, 225, 0.6);
+        --body-bg: linear-gradient(
+          160deg,
+          #f0f9ff 0%,
+          #e0f2fe 25%,
+          #cffafe 50%,
+          #ecfeff 75%,
+          #f8fafc 100%
+        );
+      }
+      [data-theme="dark"] {
+        --ww-cyan: #22d3ee;
+        --ww-cyan-light: #67e8f9;
+        --ww-cyan-dark: #06b6d4;
+        --ww-teal: #2dd4bf;
+        --ww-teal-light: #5eead4;
+        --ww-ocean: #38bdf8;
+        --ww-ocean-dark: #0ea5e9;
+        --ww-white: #0f172a;
+        --ww-snow: #1e293b;
+        --ww-frost: #334155;
+        --ww-pearl: #1e293b;
+        --ww-ink: #f8fafc;
+        --ww-ink-soft: #e2e8f0;
+        --ww-ink-muted: #94a3b8;
+        --ww-glass: rgba(15, 23, 42, 0.65);
+        --ww-glass-border: rgba(56, 189, 248, 0.15);
+        --ww-shadow: rgba(6, 182, 212, 0.25);
+        --ww-text: #f1f5f9;
+        --ww-text-secondary: #94a3b8;
+        --ww-card-bg: rgba(15, 23, 42, 0.72);
+        --ww-input-bg: rgba(30, 41, 59, 0.85);
+        --ww-input-border: rgba(56, 189, 248, 0.2);
+        --body-bg: linear-gradient(
+          160deg,
+          #020617 0%,
+          #0f172a 25%,
+          #1e293b 50%,
+          #0f172a 75%,
+          #020617 100%
+        );
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Montserrat", sans-serif;
+        background: var(--body-bg);
+        min-height: 100vh;
+        color: var(--ww-text);
+        overflow-x: hidden;
+        transition:
+          background 0.5s ease,
+          color 0.3s ease;
+      }
+      #root {
+        min-height: 100vh;
+        position: relative;
+      }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes shimmer {
+        0% {
+          background-position: -200% center;
+        }
+        100% {
+          background-position: 200% center;
+        }
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+      @keyframes rotate {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes scanline {
+        0% {
+          top: 0%;
+        }
+        100% {
+          top: 100%;
+        }
+      }
+      @keyframes waveMove {
+        0% {
+          transform: translateX(0) scaleY(1);
+        }
+        50% {
+          transform: translateX(-25%) scaleY(0.8);
+        }
+        100% {
+          transform: translateX(-50%) scaleY(1);
+        }
+      }
+      @keyframes pulseGlow {
+        0%,
+        100% {
+          box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+        }
+        50% {
+          box-shadow: 0 0 40px rgba(6, 182, 212, 0.4);
+        }
+      }
+      @keyframes slideInRight {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .animate-fadeInUp {
+        animation: fadeInUp 0.6s ease forwards;
+      }
+      .animate-fadeIn {
+        animation: fadeIn 0.4s ease forwards;
+      }
+      .animate-slideIn {
+        animation: slideInRight 0.4s ease forwards;
+      }
+
+      .wave-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+      }
+      .wave-bg .wave {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 200%;
+        height: 200px;
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%2306b6d4' fill-opacity='0.06' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E")
+          repeat-x;
+        background-size: 50% 100%;
+        animation: waveMove 12s linear infinite;
+      }
+      .wave-bg .wave:nth-child(2) {
+        bottom: 10px;
+        opacity: 0.5;
+        animation-duration: 18s;
+        animation-direction: reverse;
+      }
+      .wave-bg .wave:nth-child(3) {
+        bottom: 20px;
+        opacity: 0.3;
+        animation-duration: 24s;
+      }
+      [data-theme="dark"] .wave-bg .wave {
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%2322d3ee' fill-opacity='0.08' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E")
+          repeat-x;
+        background-size: 50% 100%;
+      }
+
+      .theme-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: 2px solid var(--ww-cyan);
+        background: var(--ww-glass);
+        backdrop-filter: blur(12px);
+        color: var(--ww-cyan);
+        font-size: 1.3rem;
+        cursor: pointer;
+        z-index: 3000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 20px var(--ww-shadow);
+      }
+      .theme-toggle:hover {
+        transform: scale(1.1) rotate(15deg);
+        background: var(--ww-cyan);
+        color: #fff;
+        box-shadow: 0 0 30px rgba(6, 182, 212, 0.4);
+      }
+
+      .app-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        z-index: 1;
+      }
+      .app-header {
+        text-align: center;
+        padding: 40px 20px 25px;
+        margin-bottom: 10px;
+        position: relative;
+      }
+      .app-header::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(
+          circle,
+          rgba(6, 182, 212, 0.12) 0%,
+          transparent 70%
+        );
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: -1;
+      }
+      .app-header h1 {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(2.2rem, 6vw, 3.5rem);
+        background: linear-gradient(
+          135deg,
+          var(--ww-cyan) 0%,
+          var(--ww-ocean) 50%,
+          var(--ww-teal) 100%
+        );
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: shimmer 5s linear infinite;
+        margin-bottom: 8px;
+        letter-spacing: -1px;
+      }
+      .app-header .subtitle {
+        color: var(--ww-text-secondary);
+        font-size: clamp(0.85rem, 2.5vw, 1rem);
+        font-weight: 500;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+      }
+      .wave-icon {
+        font-size: 3rem;
+        display: inline-block;
+        animation: float 4s ease-in-out infinite;
+        filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.4));
+        margin-bottom: 8px;
+      }
+
+      .fixed-info-bar {
+        background: var(--ww-glass);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--ww-glass-border);
+        border-radius: 20px;
+        padding: 18px 24px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 24px;
+        margin-bottom: 25px;
+        box-shadow: 0 8px 32px var(--ww-shadow);
+        transition: all 0.3s ease;
+      }
+      .fixed-info-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.9rem;
+        color: var(--ww-text);
+      }
+      .fixed-info-item .icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        background: linear-gradient(135deg, var(--ww-cyan), var(--ww-ocean));
+        box-shadow: 0 4px 15px rgba(6, 182, 212, 0.25);
+      }
+      .fixed-info-item .label {
+        font-size: 0.65rem;
+        color: var(--ww-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        font-weight: 600;
+      }
+      .fixed-info-item .value {
+        font-weight: 700;
+        color: var(--ww-text);
+        font-size: 0.95rem;
+      }
+
+      .card {
+        background: var(--ww-card-bg);
+        backdrop-filter: blur(24px);
+        border: 1px solid var(--ww-glass-border);
+        border-radius: 28px;
+        padding: 32px;
+        box-shadow: 0 20px 60px var(--ww-shadow);
+        transition: all 0.3s ease;
+      }
+      .card:hover {
+        box-shadow: 0 25px 70px rgba(6, 182, 212, 0.2);
+        border-color: rgba(6, 182, 212, 0.25);
+      }
+      @media (max-width: 480px) {
+        .card {
+          padding: 22px;
+          border-radius: 20px;
+        }
+      }
+      .card-title {
+        font-size: clamp(1.1rem, 3vw, 1.4rem);
+        font-weight: 700;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(135deg, var(--ww-cyan), var(--ww-ocean));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+      .form-group label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--ww-text-secondary);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+      }
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid var(--ww-input-border);
+        border-radius: 16px;
+        background: var(--ww-input-bg);
+        color: var(--ww-text);
+        font-family: "Montserrat", sans-serif;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: var(--ww-cyan);
+        box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.12);
+      }
+      .form-group input::placeholder,
+      .form-group textarea::placeholder {
+        color: var(--ww-frost);
+      }
+      .select-wrapper {
+        position: relative;
+      }
+      .select-wrapper::after {
+        content: "▼";
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--ww-cyan);
+        font-size: 0.7rem;
+        pointer-events: none;
+      }
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+      }
+      @media (max-width: 480px) {
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 14px 28px;
+        border: none;
+        border-radius: 16px;
+        font-family: "Montserrat", sans-serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        -webkit-user-select: none;
+        user-select: none;
+        touch-action: manipulation;
+      }
+      .btn-primary {
+        background: linear-gradient(
+          135deg,
+          var(--ww-cyan) 0%,
+          var(--ww-ocean) 100%
+        );
+        color: #fff;
+        width: 100%;
+        padding: 16px;
+        box-shadow: 0 10px 30px rgba(6, 182, 212, 0.35);
+      }
+      .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(6, 182, 212, 0.45);
+      }
+      .btn-primary:active {
+        transform: translateY(0) scale(0.98);
+      }
+      .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .btn-secondary {
+        background: var(--ww-glass);
+        color: var(--ww-text);
+        border: 1px solid var(--ww-glass-border);
+        backdrop-filter: blur(10px);
+      }
+      .btn-secondary:hover {
+        background: rgba(6, 182, 212, 0.1);
+        border-color: var(--ww-cyan);
+        transform: translateY(-2px);
+      }
+      .btn-cyan {
+        background: linear-gradient(
+          135deg,
+          var(--ww-cyan) 0%,
+          var(--ww-cyan-dark) 100%
+        );
+        color: #fff;
+        box-shadow: 0 8px 25px rgba(6, 182, 212, 0.3);
+      }
+      .btn-cyan:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(6, 182, 212, 0.4);
+      }
+      .btn-cyan:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .btn-green {
+        background: linear-gradient(
+          135deg,
+          var(--ww-teal) 0%,
+          var(--ww-teal-light) 100%
+        );
+        color: #fff;
+        box-shadow: 0 8px 25px rgba(20, 184, 166, 0.3);
+      }
+      .btn-green:hover {
+        transform: translateY(-2px);
+      }
+      .btn-outline {
+        background: transparent;
+        color: var(--ww-text-secondary);
+        border: 1px solid var(--ww-input-border);
+      }
+      .btn-outline:hover {
+        border-color: var(--ww-cyan);
+        color: var(--ww-cyan);
+        background: rgba(6, 182, 212, 0.05);
+      }
+      .btn-danger {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: #fff;
+      }
+      .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+      }
+      .btn-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 20px;
+      }
+      .btn-group .btn {
+        flex: 1;
+        min-width: 140px;
+      }
+      .btn-sm {
+        padding: 8px 16px;
+        font-size: 0.75rem;
+        border-radius: 10px;
+      }
+
+      .qr-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        padding: 20px;
+      }
+      .qr-container {
+        position: relative;
+        padding: 20px;
+        background: linear-gradient(
+          135deg,
+          rgba(6, 182, 212, 0.08),
+          rgba(14, 184, 166, 0.08)
+        );
+        border-radius: 24px;
+        border: 2px solid var(--ww-glass-border);
+        box-shadow: 0 20px 60px var(--ww-shadow);
+      }
+      .qr-container canvas,
+      .qr-container img {
+        border-radius: 16px;
+        display: block;
+      }
+      .qr-label {
+        text-align: center;
+        color: var(--ww-text-secondary);
+        font-size: 0.8rem;
+        margin-top: 10px;
+      }
+
+      /* BADGE COLORS */
+      .badge-preview {
+        position: relative;
+        width: 100%;
+        max-width: 380px;
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        margin: 0 auto;
+      }
+      .badge-preview.n0 {
+        box-shadow:
+          0 25px 50px rgba(212, 175, 55, 0.35),
+          0 0 0 4px rgba(212, 175, 55, 0.35);
+      }
+      .badge-preview.n1 {
+        box-shadow:
+          0 25px 50px rgba(236, 72, 153, 0.3),
+          0 0 0 4px rgba(236, 72, 153, 0.3);
+      }
+      .badge-preview.n2 {
+        box-shadow:
+          0 25px 50px rgba(6, 182, 212, 0.3),
+          0 0 0 4px rgba(6, 182, 212, 0.3);
+      }
+      .badge-preview.n3 {
+        box-shadow:
+          0 25px 50px rgba(139, 92, 246, 0.3),
+          0 0 0 4px rgba(139, 92, 246, 0.3);
+      }
+      .badge-preview.n4 {
+        box-shadow:
+          0 25px 50px rgba(220, 38, 38, 0.3),
+          0 0 0 4px rgba(220, 38, 38, 0.3);
+      }
+      .badge-preview.n5 {
+        box-shadow:
+          0 25px 50px rgba(16, 185, 129, 0.3),
+          0 0 0 4px rgba(16, 185, 129, 0.3);
+      }
+      .badge-header {
+        padding: 22px 15px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+      .badge-header::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 10px,
+          rgba(255, 255, 255, 0.08) 10px,
+          rgba(255, 255, 255, 0.08) 20px
+        );
+        animation: shimmer 6s linear infinite;
+      }
+      .badge-preview.n0 .badge-header {
+        background: linear-gradient(
+          135deg,
+          #1a1a2e 0%,
+          #2d2d44 30%,
+          #d4af37 60%,
+          #ffd700 100%
+        );
+      }
+      .badge-preview.n1 .badge-header {
+        background: linear-gradient(
+          135deg,
+          #be185d 0%,
+          #f472b6 50%,
+          #be185d 100%
+        );
+      }
+      .badge-preview.n2 .badge-header {
+        background: linear-gradient(
+          135deg,
+          #06b6d4 0%,
+          #67e8f9 50%,
+          #06b6d4 100%
+        );
+      }
+      .badge-preview.n3 .badge-header {
+        background: linear-gradient(
+          135deg,
+          #5b21b6 0%,
+          #a78bfa 50%,
+          #5b21b6 100%
+        );
+      }
+      .badge-preview.n4 .badge-header {
+        background: linear-gradient(
+          135deg,
+          #7f1d1d 0%,
+          #ea580c 50%,
+          #9f1239 100%
+        );
+      }
+      .badge-preview.n5 .badge-header {
+        background: linear-gradient(
+          135deg,
+          #059669 0%,
+          #34d399 50%,
+          #059669 100%
+        );
+      }
+      .badge-event-name {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(1.3rem, 4vw, 1.6rem);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        position: relative;
+        color: #fff;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      }
+      .badge-emoji {
+        font-size: 1.8rem;
+        position: relative;
+        margin-top: 4px;
+      }
+      .badge-logo-section {
+        display: flex;
+        justify-content: center;
+        padding: 20px 15px 12px;
+        background: linear-gradient(180deg, #f8f9fa 0%, #fff 100%);
+      }
+      .badge-logo-circle {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border: 4px solid;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        position: relative;
+      }
+      .badge-logo-circle::after {
+        content: "";
+        position: absolute;
+        width: 90%;
+        height: 90%;
+        border: 2px dashed;
+        border-radius: 50%;
+        opacity: 0.3;
+        animation: rotate 15s linear infinite;
+      }
+      .badge-logo-team {
+        font-size: 0.6rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 2px;
+      }
+      .badge-logo-name {
+        font-family: "Playfair Display", serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+      .badge-logo-wave {
+        font-size: 1.3rem;
+        margin-top: 2px;
+      }
+      .badge-preview.n0 .badge-logo-circle {
+        background: linear-gradient(
+          145deg,
+          #0f0f1a 0%,
+          #2d2d44 50%,
+          #4a4a6a 100%
+        );
+        border-color: #d4af37;
+      }
+      .badge-preview.n0 .badge-logo-team {
+        color: #c0c0c0;
+      }
+      .badge-preview.n0 .badge-logo-name {
+        color: #ffd700;
+      }
+      .badge-preview.n0 .badge-logo-circle::after {
+        border-color: #d4af37;
+      }
+      .badge-preview.n1 .badge-logo-circle {
+        background: linear-gradient(145deg, #4a044e 0%, #9d174d 100%);
+        border-color: #ec4899;
+      }
+      .badge-preview.n1 .badge-logo-team {
+        color: #f9a8d4;
+      }
+      .badge-preview.n1 .badge-logo-name {
+        color: #fff;
+      }
+      .badge-preview.n1 .badge-logo-circle::after {
+        border-color: #ec4899;
+      }
+      .badge-preview.n2 .badge-logo-circle {
+        background: linear-gradient(145deg, #083344 0%, #155e75 100%);
+        border-color: #22d3ee;
+      }
+      .badge-preview.n2 .badge-logo-team {
+        color: #a5f3fc;
+      }
+      .badge-preview.n2 .badge-logo-name {
+        color: #fff;
+      }
+      .badge-preview.n2 .badge-logo-circle::after {
+        border-color: #22d3ee;
+      }
+      .badge-preview.n3 .badge-logo-circle {
+        background: linear-gradient(145deg, #2e1065 0%, #5b21b6 100%);
+        border-color: #a78bfa;
+      }
+      .badge-preview.n3 .badge-logo-team {
+        color: #ddd6fe;
+      }
+      .badge-preview.n3 .badge-logo-name {
+        color: #fff;
+      }
+      .badge-preview.n3 .badge-logo-circle::after {
+        border-color: #a78bfa;
+      }
+      .badge-preview.n4 .badge-logo-circle {
+        background: linear-gradient(
+          145deg,
+          #450a0a 0%,
+          #7f1d1d 50%,
+          #9f1239 100%
+        );
+        border-color: #ea580c;
+      }
+      .badge-preview.n4 .badge-logo-team {
+        color: #fca5a5;
+      }
+      .badge-preview.n4 .badge-logo-name {
+        color: #fff;
+      }
+      .badge-preview.n4 .badge-logo-circle::after {
+        border-color: #ea580c;
+      }
+      .badge-preview.n5 .badge-logo-circle {
+        background: linear-gradient(145deg, #064e3b 0%, #059669 100%);
+        border-color: #34d399;
+      }
+      .badge-preview.n5 .badge-logo-team {
+        color: #a7f3d0;
+      }
+      .badge-preview.n5 .badge-logo-name {
+        color: #fff;
+      }
+      .badge-preview.n5 .badge-logo-circle::after {
+        border-color: #34d399;
+      }
+      .badge-info {
+        padding: 15px 20px 18px;
+        background: #fff;
+      }
+      .badge-info-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        padding: 10px 12px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+        border-radius: 10px;
+        border-left: 3px solid;
+      }
+      .badge-info-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-right: 12px;
+        font-size: 13px;
+        flex-shrink: 0;
+        color: #fff;
+      }
+      .badge-info-label {
+        font-size: 0.6rem;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .badge-info-value {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #1e293b;
+        word-break: break-word;
+      }
+      .badge-role-tag {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.6rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-left: 6px;
+        color: #fff;
+      }
+      .badge-preview.n0 .badge-info-row {
+        border-left-color: #d4af37;
+      }
+      .badge-preview.n0 .badge-info-icon {
+        background: linear-gradient(
+          135deg,
+          #2d2d44 0%,
+          #4a4a6a 50%,
+          #d4af37 100%
+        );
+      }
+      .badge-preview.n0 .badge-role-tag {
+        background: linear-gradient(135deg, #2d2d44 0%, #d4af37 100%);
+        color: #fff;
+        border: 1px solid #ffd700;
+      }
+      .badge-preview.n1 .badge-info-row {
+        border-left-color: #ec4899;
+      }
+      .badge-preview.n1 .badge-info-icon {
+        background: linear-gradient(135deg, #9d174d 0%, #db2777 100%);
+      }
+      .badge-preview.n1 .badge-role-tag {
+        background: linear-gradient(135deg, #db2777 0%, #f472b6 100%);
+      }
+      .badge-preview.n2 .badge-info-row {
+        border-left-color: #22d3ee;
+      }
+      .badge-preview.n2 .badge-info-icon {
+        background: linear-gradient(135deg, #155e75 0%, #0891b2 100%);
+      }
+      .badge-preview.n2 .badge-role-tag {
+        background: linear-gradient(135deg, #0891b2 0%, #22d3ee 100%);
+      }
+      .badge-preview.n3 .badge-info-row {
+        border-left-color: #a78bfa;
+      }
+      .badge-preview.n3 .badge-info-icon {
+        background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 100%);
+      }
+      .badge-preview.n3 .badge-role-tag {
+        background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+      }
+      .badge-preview.n4 .badge-info-row {
+        border-left-color: #ea580c;
+      }
+      .badge-preview.n4 .badge-info-icon {
+        background: linear-gradient(
+          135deg,
+          #7f1d1d 0%,
+          #ea580c 50%,
+          #9f1239 100%
+        );
+      }
+      .badge-preview.n4 .badge-role-tag {
+        background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+        color: #450a0a;
+      }
+      .badge-preview.n5 .badge-info-row {
+        border-left-color: #34d399;
+      }
+      .badge-preview.n5 .badge-info-icon {
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+      }
+      .badge-preview.n5 .badge-role-tag {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+      }
+      .badge-footer {
+        padding: 12px;
+        text-align: center;
+      }
+      .badge-footer-text {
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+      }
+      .badge-footer-line {
+        width: 50px;
+        height: 2px;
+        margin: 6px auto;
+        border-radius: 1px;
+      }
+      .badge-preview.n0 .badge-footer {
+        background: linear-gradient(
+          135deg,
+          #0f0f1a 0%,
+          #1a1a2e 40%,
+          #2d2d44 100%
+        );
+      }
+      .badge-preview.n0 .badge-footer-text {
+        color: #d4af37;
+      }
+      .badge-preview.n0 .badge-footer-line {
+        background: linear-gradient(
+          90deg,
+          transparent,
+          #d4af37,
+          #c0c0c0,
+          transparent
+        );
+      }
+      .badge-preview.n1 .badge-footer {
+        background: linear-gradient(135deg, #4a044e 0%, #9d174d 100%);
+      }
+      .badge-preview.n1 .badge-footer-text {
+        color: #f9a8d4;
+      }
+      .badge-preview.n1 .badge-footer-line {
+        background: linear-gradient(90deg, transparent, #ec4899, transparent);
+      }
+      .badge-preview.n2 .badge-footer {
+        background: linear-gradient(135deg, #083344 0%, #155e75 100%);
+      }
+      .badge-preview.n2 .badge-footer-text {
+        color: #a5f3fc;
+      }
+      .badge-preview.n2 .badge-footer-line {
+        background: linear-gradient(90deg, transparent, #22d3ee, transparent);
+      }
+      .badge-preview.n3 .badge-footer {
+        background: linear-gradient(135deg, #2e1065 0%, #5b21b6 100%);
+      }
+      .badge-preview.n3 .badge-footer-text {
+        color: #ddd6fe;
+      }
+      .badge-preview.n3 .badge-footer-line {
+        background: linear-gradient(90deg, transparent, #a78bfa, transparent);
+      }
+      .badge-preview.n4 .badge-footer {
+        background: linear-gradient(
+          135deg,
+          #450a0a 0%,
+          #7f1d1d 50%,
+          #9f1239 100%
+        );
+      }
+      .badge-preview.n4 .badge-footer-text {
+        color: #fca5a5;
+      }
+      .badge-preview.n4 .badge-footer-line {
+        background: linear-gradient(
+          90deg,
+          transparent,
+          #ea580c,
+          #f97316,
+          transparent
+        );
+      }
+      .badge-preview.n5 .badge-footer {
+        background: linear-gradient(135deg, #064e3b 0%, #059669 100%);
+      }
+      .badge-preview.n5 .badge-footer-text {
+        color: #a7f3d0;
+      }
+      .badge-preview.n5 .badge-footer-line {
+        background: linear-gradient(90deg, transparent, #34d399, transparent);
+      }
+      .badge-priority {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 6px 12px;
+        border-bottom-left-radius: 14px;
+        font-size: 0.55rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        z-index: 5;
+        color: #fff;
+      }
+      .badge-preview.n0 .badge-priority {
+        background: linear-gradient(
+          135deg,
+          #1a1a2e 0%,
+          #2d2d44 40%,
+          #d4af37 100%
+        );
+        color: #ffd700;
+        border-left: 1px solid #ffd700;
+        border-bottom: 1px solid #ffd700;
+      }
+      .badge-preview.n1 .badge-priority {
+        background: linear-gradient(135deg, #db2777 0%, #f472b6 100%);
+      }
+      .badge-preview.n2 .badge-priority {
+        background: linear-gradient(135deg, #06b6d4 0%, #67e8f9 100%);
+      }
+      .badge-preview.n3 .badge-priority {
+        background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+      }
+      .badge-preview.n4 .badge-priority {
+        background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+        color: #450a0a;
+      }
+      .badge-preview.n5 .badge-priority {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+      }
+
+      .generated-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        align-items: start;
+      }
+      @media (max-width: 900px) {
+        .generated-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+      .page-scan .generated-layout {
+        grid-template-columns: 1fr;
+      }
+      .page-scan .form-section {
+        display: none;
+      }
+      .scan-verified-banner {
+        background: linear-gradient(
+          135deg,
+          var(--ww-teal) 0%,
+          var(--ww-teal-light) 100%
+        );
+        color: #fff;
+        padding: 16px 24px;
+        border-radius: 16px;
+        text-align: center;
+        font-weight: 700;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 10px 30px rgba(20, 184, 166, 0.3);
+      }
+      .toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: linear-gradient(135deg, var(--ww-cyan), var(--ww-ocean));
+        color: #fff;
+        padding: 14px 28px;
+        border-radius: 14px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        box-shadow: 0 15px 40px rgba(6, 182, 212, 0.4);
+        z-index: 1000;
+        opacity: 0;
+        transition: all 0.4s ease;
+        pointer-events: none;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      .hidden {
+        display: none !important;
+      }
+
+      .participants-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+      .participants-table th {
+        background: linear-gradient(
+          135deg,
+          rgba(6, 182, 212, 0.15),
+          rgba(14, 184, 166, 0.1)
+        );
+        color: var(--ww-text);
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+        border-bottom: 2px solid rgba(6, 182, 212, 0.2);
+      }
+      .participants-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--ww-glass-border);
+        font-size: 0.85rem;
+        color: var(--ww-text);
+      }
+      .participants-table tr:hover td {
+        background: rgba(6, 182, 212, 0.05);
+        cursor: pointer;
+      }
+      .participants-table .role-cell {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .role-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .role-dot.n0 {
+        background: linear-gradient(135deg, #2d2d44, #d4af37);
+        box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+      }
+      .role-dot.n1 {
+        background: linear-gradient(135deg, #db2777, #f472b6);
+        box-shadow: 0 0 8px rgba(219, 39, 119, 0.5);
+      }
+      .role-dot.n2 {
+        background: linear-gradient(135deg, #06b6d4, #67e8f9);
+        box-shadow: 0 0 8px rgba(6, 182, 212, 0.5);
+      }
+      .role-dot.n3 {
+        background: linear-gradient(135deg, #7c3aed, #a78bfa);
+        box-shadow: 0 0 8px rgba(124, 58, 237, 0.5);
+      }
+      .role-dot.n4 {
+        background: linear-gradient(135deg, #ea580c, #f97316);
+        box-shadow: 0 0 8px rgba(220, 38, 38, 0.5);
+      }
+      .role-dot.n5 {
+        background: linear-gradient(135deg, #10b981, #34d399);
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+      }
+      .role-dot.generated {
+        background: #94a3b8 !important;
+        box-shadow: none !important;
+      }
+      .participants-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--ww-glass);
+        border: 1px solid var(--ww-glass-border);
+        border-radius: 14px;
+        padding: 10px 18px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--ww-text);
+        margin-bottom: 20px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+        backdrop-filter: blur(10px);
+      }
+      .participants-count:hover {
+        transform: translateY(-2px);
+        background: rgba(6, 182, 212, 0.1);
+        border-color: var(--ww-cyan);
+      }
+      .participants-count.active {
+        background: linear-gradient(135deg, var(--ww-cyan), var(--ww-ocean));
+        border-color: transparent;
+        color: #fff;
+        box-shadow: 0 4px 20px rgba(6, 182, 212, 0.35);
+      }
+      .search-box {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid var(--ww-input-border);
+        border-radius: 14px;
+        background: var(--ww-input-bg);
+        color: var(--ww-text);
+        font-family: "Montserrat", sans-serif;
+        font-size: 0.95rem;
+        margin-bottom: 20px;
+      }
+      .search-box:focus {
+        outline: none;
+        border-color: var(--ww-cyan);
+        box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.1);
+      }
+      .search-box::placeholder {
+        color: var(--ww-frost);
+      }
+
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        animation: fadeIn 0.3s ease;
+      }
+      .modal-content {
+        background: var(--ww-card-bg);
+        border: 1px solid var(--ww-glass-border);
+        border-radius: 24px;
+        padding: 40px;
+        max-width: 420px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 25px 50px var(--ww-shadow);
+        animation: fadeInUp 0.4s ease;
+      }
+      .modal-content h3 {
+        font-size: 1.3rem;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, var(--ww-cyan), var(--ww-ocean));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .modal-content p {
+        color: var(--ww-text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: 25px;
+      }
+      .modal-content .lock-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        display: block;
+      }
+      .modal-content input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid var(--ww-input-border);
+        border-radius: 14px;
+        background: var(--ww-input-bg);
+        color: var(--ww-text);
+        font-family: "Montserrat", sans-serif;
+        font-size: 1rem;
+        text-align: center;
+        letter-spacing: 3px;
+        margin-bottom: 15px;
+      }
+      .modal-content input:focus {
+        outline: none;
+        border-color: var(--ww-cyan);
+        box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.1);
+      }
+      .modal-content .error-msg {
+        color: #ef4444;
+        font-size: 0.8rem;
+        margin-top: -10px;
+        margin-bottom: 15px;
+        min-height: 20px;
+      }
+
+      .nav-bar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+      .nav-bar .btn {
+        flex: 1;
+        min-width: 120px;
+        font-size: 0.8rem;
+        padding: 12px 16px;
+      }
+      .scanner-container {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+        border-radius: 24px;
+        overflow: hidden;
+        border: 2px solid rgba(6, 182, 212, 0.3);
+        box-shadow: 0 20px 60px rgba(6, 182, 212, 0.2);
+      }
+      .scanner-overlay {
+        position: relative;
+        width: 100%;
+        height: 300px;
+        background: linear-gradient(
+          180deg,
+          rgba(15, 23, 42, 0.9),
+          rgba(15, 23, 42, 0.7)
+        );
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .scanner-frame {
+        width: 200px;
+        height: 200px;
+        border: 3px solid var(--ww-cyan);
+        border-radius: 20px;
+        position: relative;
+        box-shadow: 0 0 30px rgba(6, 182, 212, 0.3);
+      }
+      .scanner-frame::before,
+      .scanner-frame::after {
+        content: "";
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border-color: var(--ww-cyan);
+        border-style: solid;
+      }
+      .scanner-frame::before {
+        top: -3px;
+        left: -3px;
+        border-width: 4px 0 0 4px;
+      }
+      .scanner-frame::after {
+        bottom: -3px;
+        right: -3px;
+        border-width: 0 4px 4px 0;
+      }
+      .scanner-line {
+        position: absolute;
+        left: 10%;
+        width: 80%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--ww-cyan),
+          transparent
+        );
+        box-shadow: 0 0 10px var(--ww-cyan);
+        animation: scanline 2s linear infinite;
+      }
+      .scanner-text {
+        margin-top: 20px;
+        color: var(--ww-text-secondary);
+        font-size: 0.9rem;
+      }
+
+      .fab {
+        position: fixed;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: none;
+        color: #fff;
+        font-size: 1.4rem;
+        cursor: pointer;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        z-index: 999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+      }
+      .fab:hover {
+        transform: scale(1.1);
+      }
+      .fab-scan {
+        bottom: 25px;
+        right: 25px;
+        background: linear-gradient(135deg, var(--ww-cyan), var(--ww-ocean));
+      }
+      .fab-list {
+        bottom: 95px;
+        right: 25px;
+        background: linear-gradient(
+          135deg,
+          var(--ww-teal),
+          var(--ww-teal-light)
+        );
+        font-size: 1.2rem;
+      }
+      .fab-home {
+        bottom: 165px;
+        right: 25px;
+        background: linear-gradient(
+          135deg,
+          var(--ww-ocean-dark),
+          var(--ww-cyan-dark)
+        );
+        font-size: 1.2rem;
+      }
+      .fab-admin {
+        bottom: 235px;
+        right: 25px;
+        background: linear-gradient(135deg, #7c3aed, #a78bfa);
+        font-size: 1.1rem;
+      }
+
+      .clickable-row {
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .clickable-row:hover {
+        background: rgba(6, 182, 212, 0.08) !important;
+        transform: translateX(5px);
+      }
+      .role-icon-table {
+        font-size: 1rem;
+        margin-right: 6px;
+      }
+      .role-icon-table.generated {
+        filter: grayscale(100%);
+        opacity: 0.5;
+      }
+
+      .brand-watermark {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        font-family: "Playfair Display", serif;
+        font-size: 0.75rem;
+        color: var(--ww-cyan);
+        opacity: 0.25;
+        pointer-events: none;
+        z-index: 0;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
+      /* Admin tabs */
+      .admin-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        border-bottom: 2px solid var(--ww-glass-border);
+        padding-bottom: 10px;
+      }
+      .admin-tab {
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: transparent;
+        color: var(--ww-text-secondary);
+        border: none;
+        font-family: "Montserrat", sans-serif;
+      }
+      .admin-tab:hover {
+        background: rgba(6, 182, 212, 0.08);
+        color: var(--ww-cyan);
+      }
+      .admin-tab.active {
+        background: linear-gradient(135deg, var(--ww-cyan), var(--ww-ocean));
+        color: #fff;
+        box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+      }
+      .admin-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 20px;
+        border-radius: 10px;
+        background: #ef4444;
+        color: #fff;
+        font-size: 0.65rem;
+        font-weight: 700;
+        margin-left: 6px;
+        padding: 0 6px;
+      }
+
+      /* Notification panel */
+      .notification-panel {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        width: 320px;
+        max-height: 400px;
+        background: var(--ww-card-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--ww-glass-border);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 20px 60px var(--ww-shadow);
+        z-index: 2500;
+        overflow-y: auto;
+        animation: slideInRight 0.3s ease;
+      }
+      .notification-panel h4 {
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+        color: var(--ww-text);
+      }
+      .notification-item {
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(6, 182, 212, 0.05);
+        margin-bottom: 8px;
+        font-size: 0.8rem;
+        border-left: 3px solid var(--ww-cyan);
+      }
+      .notification-item.unread {
+        border-left-color: #ef4444;
+        background: rgba(239, 68, 68, 0.05);
+      }
+      .notification-item .notif-time {
+        font-size: 0.65rem;
+        color: var(--ww-text-secondary);
+        margin-top: 4px;
+      }
+
+      /* Info modal for scan */
+      .info-modal-content {
+        max-width: 500px;
+        text-align: left;
+      }
+      .info-modal-content h4 {
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+        color: var(--ww-text);
+      }
+      .info-modal-content ul {
+        list-style: none;
+        padding: 0;
+      }
+      .info-modal-content li {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--ww-glass-border);
+        font-size: 0.9rem;
+        color: var(--ww-text-secondary);
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .info-modal-content li:last-child {
+        border-bottom: none;
+      }
+      .info-modal-content .info-icon {
+        font-size: 1.2rem;
+        flex-shrink: 0;
+      }
+
+      /* Admin login */
+      .admin-login-card {
+        max-width: 420px;
+        margin: 0 auto;
+      }
+      .admin-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+      .admin-header h2 {
+        font-size: 1.3rem;
+        background: linear-gradient(135deg, var(--ww-cyan), var(--ww-ocean));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      /* Stats grid */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+      }
+      .stat-card {
+        background: var(--ww-glass);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--ww-glass-border);
+        border-radius: 16px;
+        padding: 16px;
+        text-align: center;
+      }
+      .stat-card .stat-value {
+        font-size: 1.6rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, var(--ww-cyan), var(--ww-ocean));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .stat-card .stat-label {
+        font-size: 0.7rem;
+        color: var(--ww-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 4px;
+      }
+
+      /* Status badges */
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .status-confirmed {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+      .status-pending {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+      .status-generated {
+        background: rgba(148, 163, 184, 0.15);
+        color: #94a3b8;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+      }
+
+      .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--ww-glass);
+        backdrop-filter: blur(20px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 5000;
+        gap: 20px;
+      }
+      .loading-overlay.hidden {
+        display: none;
+      }
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid var(--ww-glass-border);
+        border-top-color: var(--ww-cyan);
+        border-radius: 50%;
+        animation: rotate 1s linear infinite;
+      }
+
+      @media print {
+        .theme-toggle,
+        .fab,
+        .wave-bg,
+        .brand-watermark,
+        .nav-bar,
+        .btn-group,
+        .qr-wrapper,
+        .admin-tabs,
+        .notification-panel,
+        .loading-overlay {
+          display: none !important;
+        }
+        body {
+          background: #fff !important;
+          color: #000 !important;
+        }
+        .badge-preview {
+          box-shadow: none !important;
+          border: 2px solid #ddd;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
+      const { useState, useEffect, useRef } = React;
+
+      /* ============================================================
+         CONFIG SUPABASE - REMPLACE CES VALEURS !
+         ============================================================ */
+      const SUPABASE_URL = "https://zsdgubuucsguywjlejtj.supabase.co";
+      const SUPABASE_ANON_KEY = "sb_publishable_NHuAr4AelDDbdlC4rBYRvA_XCD6KSR6";
+      
+      // Initialisation Supabase
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      const EVENT_NAME = "White Wave";
+      const TEAM_NAME = "White Wave";
+      const EVENT_DATE = "13 Juin 2026";
+
+      const LEVEL_CONFIG = {
+        0: { name: "VIP", badgeText: "VIP", className: "n0", color: "#d4af37", femName: "VIP", icon: "👑" },
+        1: { name: "COUPLE", badgeText: "COUPLE", className: "n1", color: "#ec4899", femName: "COUPLE", icon: "💕" },
+        2: { name: "PARTICIPANT", badgeText: "GUEST", className: "n2", color: "#22d3ee", femName: "PARTICIPANTE", icon: "🎫" },
+        3: { name: "ORGANISATEUR", badgeText: "ORG", className: "n3", color: "#a78bfa", femName: "ORGANISATRICE", icon: "👔" },
+        4: { name: "SPONSOR", badgeText: "SPONSOR", className: "n4", color: "#ea580c", femName: "SPONSOR", icon: "🤝" },
+        5: { name: "STAFF", badgeText: "STAFF", className: "n5", color: "#34d399", femName: "STAFF", icon: "🛡️" },
+      };
+
+      const ROLE_ADVANTAGES = {
+        VIP: [
+          { icon: "👑", text: "Accès prioritaire sans file d'attente" },
+          { icon: "🥂", text: "Open bar premium (champagne & cocktails)" },
+          { icon: "🛋️", text: "Lounge VIP exclusif avec espace dédié" },
+          { icon: "📸", text: "Photo officielle avec l'équipe White Wave" },
+          { icon: "🎁", text: "Goodies exclusifs et cadeaux de bienvenue" },
+          { icon: "🍾", text: "Bouteille personnalisée réservée sur table" },
+          { icon: "🤝", text: "Rencontre privilégiée avec les organisateurs" },
+          { icon: "🔒", text: "Vestiaire sécurisé et assistance dédiée" },
+        ],
+        Couple: [
+          { icon: "💕", text: "Table romantique réservée pour deux" },
+          { icon: "🥂", text: "Cocktail de bienvenue offert" },
+          { icon: "📸", text: "Séance photo couple souvenir" },
+          { icon: "🎁", text: "Cadeau surprise à emporter" },
+          { icon: "💐", text: "Décoration florale sur la table" },
+        ],
+        Participant: [
+          { icon: "🎫", text: "Accès complet à l'événement" },
+          { icon: "🍹", text: "Une consommation offerte" },
+          { icon: "🎵", text: "Accès à toutes les animations" },
+          { icon: "📸", text: "Photobooth gratuit" },
+        ],
+        Organisateur: [
+          { icon: "👔", text: "Accès backstage et zones techniques" },
+          { icon: "🎧", text: "Communication radio avec l'équipe" },
+          { icon: "🍽️", text: "Repas staff inclus" },
+          { icon: "🅿️", text: "Parking réservé" },
+        ],
+        Sponsor: [
+          { icon: "🤝", text: "Stand de visibilité dédié" },
+          { icon: "📢", text: "Mention sur les supports de com" },
+          { icon: "🥂", text: "Accès lounge partenaires" },
+          { icon: "📊", text: "Report post-événement exclusif" },
+        ],
+        Staff: [
+          { icon: "🛡️", text: "Accès sécurisé à toutes les zones" },
+          { icon: "🍽️", text: "Repas et rafraîchissements inclus" },
+          { icon: "👕", text: "Tenue officielle White Wave fournie" },
+          { icon: "💰", text: "Indemnité de participation" },
+        ],
+      };
+
+      /* ============================================================
+         FONCTIONS UTILITAIRES
+         ============================================================ */
+      function getLevelFromRole(role) {
+        const r = (role || "").toLowerCase().trim();
+        if (r === "vip") return 0;
+        if (r === "couple") return 1;
+        if (r === "organisateur") return 3;
+        if (r === "sponsor") return 4;
+        if (r === "staff") return 5;
+        return 2;
+      }
+
+      function getGenderedRole(role, gender) {
+        const level = getLevelFromRole(role);
+        const config = LEVEL_CONFIG[level];
+        if (gender === "Féminin" && config.femName) return config.femName;
+        return config.name;
+      }
+
+      function formatDate(isoString) {
+        if (!isoString) return "-";
+        const d = new Date(isoString);
+        if (isNaN(d.getTime())) return "-";
+        return d.toLocaleDateString("fr-FR", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      /* ============================================================
+         SUPABASE CRUD OPERATIONS
+         ============================================================ */
+      async function getParticipants() {
+        const { data, error } = await supabase
+          .from("participants")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (error) {
+          console.error("Erreur getParticipants:", error);
+          return [];
+        }
+        return data || [];
+      }
+
+      async function getReservations() {
+        const { data, error } = await supabase
+          .from("reservations")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (error) {
+          console.error("Erreur getReservations:", error);
+          return [];
+        }
+        return data || [];
+      }
+
+      async function saveParticipant(p) {
+        const dataToSave = {
+          first_name: p.firstName,
+          last_name: p.lastName,
+          gender: p.gender,
+          role: p.role,
+          level: p.level || getLevelFromRole(p.role),
+          event: EVENT_NAME,
+          team: TEAM_NAME,
+          date_event: EVENT_DATE,
+          is_generated: true,
+        };
+        const { data, error } = await supabase
+          .from("participants")
+          .insert([dataToSave])
+          .select();
+        if (error) {
+          console.error("Erreur saveParticipant:", error);
+          throw error;
+        }
+        return data[0];
+      }
+
+      async function saveReservation(r) {
+        const dataToSave = {
+          first_name: r.firstName,
+          last_name: r.lastName,
+          gender: r.gender,
+          phone: r.phone,
+          email: r.email,
+          role: r.role,
+          vip_count: r.vipCount || null,
+          notified: false,
+          confirmed: false,
+        };
+        
+        const { data, error } = await supabase
+          .from("reservations")
+          .insert([dataToSave])
+          .select();
+        if (error) {
+          console.error("Erreur saveReservation:", error);
+          throw error;
+        }
+        return data[0];
+      }
+
+      async function updateReservation(id, updates) {
+        const { error } = await supabase
+          .from("reservations")
+          .update(updates)
+          .eq("id", id);
+        if (error) {
+          console.error("Erreur updateReservation:", error);
+          throw error;
+        }
+      }
+
+      async function deleteReservation(id) {
+        const { error } = await supabase
+          .from("reservations")
+          .delete()
+          .eq("id", id);
+        if (error) {
+          console.error("Erreur deleteReservation:", error);
+          throw error;
+        }
+      }
+
+      async function isBadgeAlreadyGenerated(firstName, lastName, role) {
+        const { data, error } = await supabase
+          .from("participants")
+          .select("id")
+          .ilike("first_name", firstName.trim())
+          .ilike("last_name", lastName.trim())
+          .ilike("role", role.trim());
+        if (error) {
+          console.error("Erreur isBadgeAlreadyGenerated:", error);
+          return false;
+        }
+        return data && data.length > 0;
+      }
+
+      /* ============================================================
+         ADMIN SESSION (gardé en localStorage - pas de données sensibles)
+         ============================================================ */
+      function getAdminSession() {
+        try {
+          const data = localStorage.getItem("ww_admin_session");
+          return data ? JSON.parse(data) : null;
+        } catch (e) {
+          return null;
+        }
+      }
+      function setAdminSession(session) {
+        localStorage.setItem("ww_admin_session", JSON.stringify(session));
+      }
+      function clearAdminSession() {
+        localStorage.removeItem("ww_admin_session");
+      }
+
+      /* ============================================================
+         COMPOSANTS UI (Toast, ThemeToggle, WaveBackground, etc.)
+         ============================================================ */
+      function Toast({ message, visible }) {
+        return React.createElement(
+          "div",
+          { className: `toast ${visible ? "show" : ""}` },
+          message,
+        );
+      }
+
+      function ThemeToggle() {
+        const [dark, setDark] = useState(() => {
+          return (
+            localStorage.getItem("ww_theme") === "dark" ||
+            (!localStorage.getItem("ww_theme") &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches)
+          );
+        });
+        useEffect(() => {
+          document.documentElement.setAttribute(
+            "data-theme",
+            dark ? "dark" : "light",
+          );
+          localStorage.setItem("ww_theme", dark ? "dark" : "light");
+        }, [dark]);
+        return React.createElement(
+          "button",
+          {
+            className: "theme-toggle",
+            onClick: () => setDark(!dark),
+            title: dark ? "Mode clair" : "Mode sombre",
+          },
+          dark ? "☀️" : "🌙",
+        );
+      }
+
+      function WaveBackground() {
+        return React.createElement(
+          "div",
+          { className: "wave-bg" },
+          React.createElement("div", { className: "wave" }),
+          React.createElement("div", { className: "wave" }),
+          React.createElement("div", { className: "wave" }),
+        );
+      }
+
+      function BrandWatermark() {
+        return React.createElement(
+          "div",
+          { className: "brand-watermark" },
+          "White Wave © 2026",
+        );
+      }
+
+      function LoadingOverlay({ visible, message }) {
+        if (!visible) return null;
+        return React.createElement(
+          "div",
+          { className: "loading-overlay" },
+          React.createElement("div", { className: "loading-spinner" }),
+          React.createElement(
+            "div",
+            { style: { color: "var(--ww-text)", fontWeight: 600 } },
+            message || "Chargement...",
+          ),
+        );
+      }
+
+      /* ============================================================
+         INFO MODAL
+         ============================================================ */
+      function InfoModal({ role, onClose }) {
+        const advantages =
+          ROLE_ADVANTAGES[role] || ROLE_ADVANTAGES["Participant"];
+        return React.createElement(
+          "div",
+          { className: "modal-overlay", onClick: onClose },
+          React.createElement(
+            "div",
+            {
+              className: "modal-content info-modal-content",
+              onClick: (e) => e.stopPropagation(),
+            },
+            React.createElement("h4", null, `🎟️ Avantages ${role}`),
+            React.createElement(
+              "ul",
+              null,
+              advantages.map((adv, i) =>
+                React.createElement(
+                  "li",
+                  { key: i },
+                  React.createElement(
+                    "span",
+                    { className: "info-icon" },
+                    adv.icon,
+                  ),
+                  React.createElement("span", null, adv.text),
+                ),
+              ),
+            ),
+            React.createElement(
+              "button",
+              {
+                className: "btn btn-primary",
+                onClick: onClose,
+                style: { marginTop: 15, width: "100%" },
+              },
+              "✓ Compris",
+            ),
+          ),
+        );
+      }
+
+      /* ============================================================
+         STYLED QR CODE
+         ============================================================ */
+      function StyledQRCode({ url, level }) {
+        const containerRef = useRef(null);
+        const config = LEVEL_CONFIG[level];
+        useEffect(() => {
+          if (!containerRef.current || !url) return;
+          containerRef.current.innerHTML = "";
+          const tempDiv = document.createElement("div");
+          new QRCode(tempDiv, {
+            text: url,
+            width: 280,
+            height: 280,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H,
+          });
+          setTimeout(() => {
+            const img = tempDiv.querySelector("img");
+            if (!img) return;
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            const size = 320;
+            canvas.width = size;
+            canvas.height = size;
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            if (level === 0) {
+              gradient.addColorStop(0, "#0f0f1a");
+              gradient.addColorStop(0.4, "#2d2d44");
+              gradient.addColorStop(0.7, "#4a4a6a");
+              gradient.addColorStop(1, "#d4af37");
+            } else if (level === 1) {
+              gradient.addColorStop(0, "#4a044e");
+              gradient.addColorStop(0.5, "#9d174d");
+              gradient.addColorStop(1, "#4a044e");
+            } else if (level === 3) {
+              gradient.addColorStop(0, "#2e1065");
+              gradient.addColorStop(0.5, "#5b21b6");
+              gradient.addColorStop(1, "#2e1065");
+            } else if (level === 4) {
+              gradient.addColorStop(0, "#450a0a");
+              gradient.addColorStop(0.4, "#7f1d1d");
+              gradient.addColorStop(0.7, "#9f1239");
+              gradient.addColorStop(1, "#ea580c");
+            } else if (level === 5) {
+              gradient.addColorStop(0, "#064e3b");
+              gradient.addColorStop(0.5, "#059669");
+              gradient.addColorStop(1, "#064e3b");
+            } else {
+              gradient.addColorStop(0, "#083344");
+              gradient.addColorStop(0.5, "#155e75");
+              gradient.addColorStop(1, "#083344");
+            }
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            ctx.fillStyle = "#ffffff";
+            const qrSize = 260,
+              qrX = (size - qrSize) / 2,
+              qrY = (size - qrSize) / 2;
+            roundRect(ctx, qrX, qrY, qrSize, qrSize, 16);
+            ctx.fill();
+            ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
+            const centerX = size / 2,
+              centerY = size / 2,
+              logoRadius = 48;
+            ctx.globalCompositeOperation = "destination-out";
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, logoRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalCompositeOperation = "source-over";
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, logoRadius - 2, 0, Math.PI * 2);
+            ctx.fillStyle = "#ffffff";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, logoRadius - 2, 0, Math.PI * 2);
+            ctx.strokeStyle = config.color;
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, logoRadius - 6, 0, Math.PI * 2);
+            const logoGrad = ctx.createLinearGradient(
+              centerX - 30,
+              centerY - 30,
+              centerX + 30,
+              centerY + 30,
+            );
+            if (level === 0) {
+              logoGrad.addColorStop(0, "#2d2d44");
+              logoGrad.addColorStop(0.5, "#4a4a6a");
+              logoGrad.addColorStop(1, "#d4af37");
+            } else if (level === 1) {
+              logoGrad.addColorStop(0, "#9d174d");
+              logoGrad.addColorStop(1, "#db2777");
+            } else if (level === 3) {
+              logoGrad.addColorStop(0, "#5b21b6");
+              logoGrad.addColorStop(1, "#7c3aed");
+            } else if (level === 4) {
+              logoGrad.addColorStop(0, "#7f1d1d");
+              logoGrad.addColorStop(0.5, "#9f1239");
+              logoGrad.addColorStop(1, "#ea580c");
+            } else if (level === 5) {
+              logoGrad.addColorStop(0, "#059669");
+              logoGrad.addColorStop(1, "#10b981");
+            } else {
+              logoGrad.addColorStop(0, "#155e75");
+              logoGrad.addColorStop(1, "#0891b2");
+            }
+            ctx.fillStyle = logoGrad;
+            ctx.fill();
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 11px Montserrat, sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("White", centerX, centerY - 8);
+            ctx.fillText("Wave", centerX, centerY + 8);
+            containerRef.current.innerHTML = "";
+            containerRef.current.appendChild(canvas);
+          }, 100);
+        }, [url, level]);
+        function roundRect(ctx, x, y, w, h, r) {
+          ctx.beginPath();
+          ctx.moveTo(x + r, y);
+          ctx.lineTo(x + w - r, y);
+          ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+          ctx.lineTo(x + w, y + h - r);
+          ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+          ctx.lineTo(x + r, y + h);
+          ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+          ctx.lineTo(x, y + r);
+          ctx.quadraticCurveTo(x, y, x + r, y);
+          ctx.closePath();
+        }
+        return React.createElement(
+          "div",
+          {
+            className: "qr-container",
+            ref: containerRef,
+            style: {
+              minWidth: 320,
+              minHeight: 320,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            },
+          },
+          React.createElement(
+            "div",
+            {
+              style: { color: "var(--ww-text-secondary)", fontSize: "0.8rem" },
+            },
+            "Génération du QR...",
+          ),
+        );
+      }
+
+      /* ============================================================
+         BADGE COMPONENT
+         ============================================================ */
+      function Badge({ data }) {
+        const level = data.level || 0;
+        const config = LEVEL_CONFIG[level];
+        const genderedRole = getGenderedRole(data.role, data.gender);
+        return React.createElement(
+          "div",
+          { className: `badge-preview ${config.className} animate-fadeInUp` },
+          React.createElement(
+            "div",
+            { className: "badge-priority" },
+            genderedRole,
+          ),
+          React.createElement(
+            "div",
+            { className: "badge-header" },
+            React.createElement(
+              "div",
+              { className: "badge-event-name" },
+              EVENT_NAME,
+            ),
+            React.createElement("div", { className: "badge-emoji" }, "🌊"),
+          ),
+          React.createElement(
+            "div",
+            { className: "badge-logo-section" },
+            React.createElement(
+              "div",
+              { className: "badge-logo-circle" },
+              React.createElement(
+                "div",
+                { className: "badge-logo-team" },
+                "Équipe",
+              ),
+              React.createElement(
+                "div",
+                { className: "badge-logo-name" },
+                TEAM_NAME,
+              ),
+              React.createElement(
+                "div",
+                { className: "badge-logo-wave" },
+                "🌊",
+              ),
+            ),
+          ),
+          React.createElement(
+            "div",
+            { className: "badge-info" },
+            React.createElement(
+              "div",
+              { className: "badge-info-row" },
+              React.createElement(
+                "div",
+                { className: "badge-info-icon" },
+                "👤",
+              ),
+              React.createElement(
+                "div",
+                null,
+                React.createElement(
+                  "div",
+                  { className: "badge-info-label" },
+                  "Nom",
+                ),
+                React.createElement(
+                  "div",
+                  { className: "badge-info-value" },
+                  data.lastName || "-",
+                ),
+              ),
+            ),
+            React.createElement(
+              "div",
+              { className: "badge-info-row" },
+              React.createElement(
+                "div",
+                { className: "badge-info-icon" },
+                "📝",
+              ),
+              React.createElement(
+                "div",
+                null,
+                React.createElement(
+                  "div",
+                  { className: "badge-info-label" },
+                  "Prénom",
+                ),
+                React.createElement(
+                  "div",
+                  { className: "badge-info-value" },
+                  data.firstName || "-",
+                ),
+              ),
+            ),
+            React.createElement(
+              "div",
+              { className: "badge-info-row" },
+              React.createElement("div", { className: "badge-info-icon" }, "⚧"),
+              React.createElement(
+                "div",
+                null,
+                React.createElement(
+                  "div",
+                  { className: "badge-info-label" },
+                  "Sexe",
+                ),
+                React.createElement(
+                  "div",
+                  { className: "badge-info-value" },
+                  data.gender || "-",
+                ),
+              ),
+            ),
+            React.createElement(
+              "div",
+              { className: "badge-info-row" },
+              React.createElement(
+                "div",
+                { className: "badge-info-icon" },
+                "📅",
+              ),
+              React.createElement(
+                "div",
+                null,
+                React.createElement(
+                  "div",
+                  { className: "badge-info-label" },
+                  "Date",
+                ),
+                React.createElement(
+                  "div",
+                  { className: "badge-info-value" },
+                  EVENT_DATE,
+                ),
+              ),
+            ),
+            React.createElement(
+              "div",
+              { className: "badge-info-row" },
+              React.createElement(
+                "div",
+                { className: "badge-info-icon" },
+                "⭐",
+              ),
+              React.createElement(
+                "div",
+                null,
+                React.createElement(
+                  "div",
+                  { className: "badge-info-label" },
+                  "Rôle",
+                ),
+                React.createElement(
+                  "div",
+                  { className: "badge-info-value" },
+                  data.role || "-",
+                  React.createElement(
+                    "span",
+                    { className: "badge-role-tag" },
+                    config.badgeText,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          React.createElement(
+            "div",
+            { className: "badge-footer" },
+            React.createElement(
+              "div",
+              { className: "badge-footer-text" },
+              TEAM_NAME + " Events",
+            ),
+            React.createElement("div", { className: "badge-footer-line" }),
+            React.createElement(
+              "div",
+              { className: "badge-footer-text" },
+              EVENT_NAME + " 2026",
+            ),
+          ),
+        );
+      }
+
+      /* ============================================================
+         RESERVATION PAGE
+         ============================================================ */
+      function ReservationPage({ onSubmitted }) {
+        const [lastName, setLastName] = useState("");
+        const [firstName, setFirstName] = useState("");
+        const [gender, setGender] = useState("");
+        const [phone, setPhone] = useState("");
+        const [email, setEmail] = useState("");
+        const [role, setRole] = useState("");
+        const [vipCount, setVipCount] = useState(4);
+        const [loading, setLoading] = useState(false);
+
+        const handleSubmit = async () => {
+          if (
+            !lastName.trim() ||
+            !firstName.trim() ||
+            !gender ||
+            !phone.trim() ||
+            !email.trim() ||
+            !role
+          ) {
+            alert("Veuillez remplir tous les champs !");
+            return;
+          }
+          setLoading(true);
+          try {
+            const data = {
+              firstName: firstName.trim(),
+              lastName: lastName.trim(),
+              gender,
+              phone: phone.trim(),
+              email: email.trim(),
+              role,
+              vipCount: role === "VIP" ? parseInt(vipCount) || 4 : null,
+            };
+            await saveReservation(data);
+            onSubmitted();
+          } catch (e) {
+            alert("Erreur lors de la réservation: " + e.message);
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        return React.createElement(
+          "div",
+          { className: "app-container" },
+          React.createElement(LoadingOverlay, {
+            visible: loading,
+            message: "Envoi en cours...",
+          }),
+          React.createElement(
+            "div",
+            { className: "app-header" },
+            React.createElement("div", { className: "wave-icon" }, "🌊"),
+            React.createElement("h1", null, "White Wave"),
+            React.createElement(
+              "p",
+              { className: "subtitle" },
+              "Réservez votre place",
+            ),
+          ),
+          React.createElement(
+            "div",
+            { className: "fixed-info-bar animate-fadeIn" },
+            React.createElement(
+              "div",
+              { className: "fixed-info-item" },
+              React.createElement("div", { className: "icon purple" }, "🌊"),
+              React.createElement(
+                "div",
+                null,
+                React.createElement("div", { className: "label" }, "Événement"),
+                React.createElement("div", { className: "value" }, EVENT_NAME),
+              ),
+            ),
+            React.createElement(
+              "div",
+              { className: "fixed-info-item" },
+              React.createElement("div", { className: "icon pink" }, "🤝"),
+              React.createElement(
+                "div",
+                null,
+                React.createElement("div", { className: "label" }, "Équipe"),
+                React.createElement("div", { className: "value" }, TEAM_NAME),
+              ),
+            ),
+            React.createElement(
+              "div",
+              { className: "fixed-info-item" },
+              React.createElement("div", { className: "icon cyan" }, "📅"),
+              React.createElement(
+                "div",
+                null,
+                React.createElement("div", { className: "label" }, "Date"),
+                React.createElement("div", { className: "value" }, EVENT_DATE),
+              ),
+            ),
+          ),
+          React.createElement(
+            "div",
+            { className: "card animate-fadeInUp" },
+            React.createElement(
+              "div",
+              { className: "card-title" },
+              "📝 Formulaire de réservation",
+            ),
+            React.createElement(
+              "div",
+              { className: "form-row" },
+              React.createElement(
+                "div",
+                { className: "form-group" },
+                React.createElement("label", null, "👤 Nom"),
+                React.createElement("input", {
+                  type: "text",
+                  placeholder: "Ex: Doe",
+                  value: lastName,
+                  onChange: (e) => setLastName(e.target.value),
+                }),
+              ),
+              React.createElement(
+                "div",
+                { className: "form-group" },
+                React.createElement("label", null, "📝 Prénom"),
+                React.createElement("input", {
+                  type: "text",
+                  placeholder: "Ex: John",
+                  value: firstName,
+                  onChange: (e) => setFirstName(e.target.value),
+                }),
+              ),
+            ),
+            React.createElement(
+              "div",
+              { className: "form-row" },
+              React.createElement(
+                "div",
+                { className: "form-group" },
+                React.createElement("label", null, "⚧ Sexe"),
+                React.createElement(
+                  "div",
+                  { className: "select-wrapper" },
+                  React.createElement(
+                    "select",
+                    {
+                      value: gender,
+                      onChange: (e) => setGender(e.target.value),
+                    },
+                    React.createElement("option", { value: "" }, "Choisir..."),
+                    React.createElement(
+                      "option",
+                      { value: "Masculin" },
+                      "Masculin",
+                    ),
+                    React.createElement(
+                      "option",
+                      { value: "Féminin" },
+                      "Féminin",
+                    ),
+                  ),
+                ),
+              ),
+              React.createElement(
+                "div",
+                { className: "form-group" },
+                React.createElement("label", null, "📱 Téléphone"),
+                React.createElement("input", {
+                  type: "tel",
+                  placeholder: "Ex: +33 6 12 34 56 78",
+                  value: phone,
+                  onChange: (e) => setPhone(e.target.value),
+                }),
+              ),
+            ),
+            React.createElement(
+              "div",
+              { className: "form-group" },
+              React.createElement("label", null, "📧 Email"),
+              React.createElement("input", {
+                type: "email",
+                placeholder: "Ex: john.doe@email.com",
+                value: email,
+                onChange: (e) => setEmail(e.target.value),
+              }),
+            ),
+            React.createElement(
+              "div",
+              { className: "form-row" },
+              React.createElement(
+                "div",
+                { className: "form-group" },
+                React.createElement("label", null, "⭐ Type de ticket"),
+                React.createElement(
+                  "div",
+                  { className: "select-wrapper" },
+                  React.createElement(
+                    "select",
+                    { value: role, onChange: (e) => setRole(e.target.value) },
+                    React.createElement("option", { value: "" }, "Choisir..."),
+                    React.createElement(
+                      "option",
+                      { value: "VIP" },
+                      "👑 VIP (groupe 4-5 pers.)",
+                    ),
+                    React.createElement(
+                      "option",
+                      { value: "Couple" },
+                      "💕 COUPLE",
+                    ),
+                    React.createElement(
+                      "option",
+                      { value: "Sponsor" },
+                      "🤝 SPONSOR",
+                    ),
+                    React.createElement(
+                      "option",
+                      { value: "Participant" },
+                      "🎫 PARTICIPANT",
+                    ),
+                  ),
+                ),
+              ),
+              role === "VIP" &&
+                React.createElement(
+                  "div",
+                  { className: "form-group" },
+                  React.createElement("label", null, "👥 Nombre de personnes"),
+                  React.createElement(
+                    "div",
+                    { className: "select-wrapper" },
+                    React.createElement(
+                      "select",
+                      {
+                        value: vipCount,
+                        onChange: (e) => setVipCount(e.target.value),
+                      },
+                      React.createElement(
+                        "option",
+                        { value: 4 },
+                        "4 personnes",
+                      ),
+                      React.createElement(
+                        "option",
+                        { value: 5 },
+                        "5 personnes",
+                      ),
+                    ),
+                  ),
+                ),
+            ),
+            React.createElement(
+              "button",
+              {
+                className: "btn btn-primary",
+                onClick: handleSubmit,
+                disabled: loading,
+              },
+              loading ? "⏳ Envoi..." : "✨ Réserver ma place",
+            ),
+          ),
+        );
+      }
+
+      /* ============================================================
+         THANKS PAGE
+         ============================================================ */
+      function ThanksPage({ onBack }) {
+        return React.createElement(
+          "div",
+          { className: "app-container" },
+          React.createElement(
+            "div",
+            { className: "app-header" },
+            React.createElement("div", { className: "wave-icon" }, "🌊"),
+            React.createElement("h1", null, "White Wave"),
+            React.createElement(
+              "p",
+              { className: "subtitle" },
+              "Réservation confirmée",
+            ),
+          ),
+          React.createElement(
+            "div",
+            {
+              className: "card animate-fadeInUp",
+              style: { textAlign: "center", maxWidth: 500, margin: "0 auto" },
+            },
+            React.createElement(
+              "div",
+              { style: { fontSize: "4rem", marginBottom: 20 } },
+              "✅",
+            ),
+            React.createElement(
+              "h2",
+              {
+                style: {
+                  fontSize: "1.4rem",
+                  marginBottom: 12,
+                  color: "var(--ww-text)",
+                },
+              },
+              "Merci pour votre réservation !",
+            ),
+            React.createElement(
+              "p",
+              {
+                style: {
+                  color: "var(--ww-text-secondary)",
+                  lineHeight: 1.7,
+                  marginBottom: 25,
+                },
+              },
+              "Votre demande a bien été enregistrée. Notre équipe White Wave vous contactera très prochainement pour confirmer votre place et vous transmettre les détails de l'événement.",
+            ),
+            React.createElement(
+              "div",
+              {
+                style: {
+                  background: "rgba(6,182,212,0.08)",
+                  borderRadius: 16,
+                  padding: 20,
+                  marginBottom: 25,
+                },
+              },
+              React.createElement(
+                "div",
+                {
+                  style: {
+                    fontSize: "0.85rem",
+                    color: "var(--ww-text-secondary)",
+                    marginBottom: 8,
+                  },
+                },
+                "📅 Date de l'événement",
+              ),
+              React.createElement(
+                "div",
+                {
+                  style: {
+                    fontSize: "1.1rem",
+                    fontWeight: 700,
+                    color: "var(--ww-cyan)",
+                  },
+                },
+                EVENT_DATE,
+              ),
+              React.createElement(
+                "div",
+                {
+                  style: {
+                    fontSize: "0.85rem",
+                    color: "var(--ww-text-secondary)",
+                    marginTop: 12,
+                    marginBottom: 8,
+                  },
+                },
+                "📍 Lieu",
+              ),
+              React.createElement(
+                "div",
+                {
+                  style: {
+                    fontSize: "1rem",
+                    fontWeight: 600,
+                    color: "var(--ww-text)",
+                  },
+                },
+                "Lieu à confirmer",
+              ),
+            ),
+            React.createElement(
+              "button",
+              { className: "btn btn-primary", onClick: onBack },
+              "🌊 Retour à l'accueil",
+            ),
+          ),
+        );
+      }
+
+      /* ============================================================
+         ADMIN LOGIN
+         ============================================================ */
+      function AdminLoginPage({ onLogin, onBack }) {
+        const [identifier, setIdentifier] = useState("");
+        const [password, setPassword] = useState("");
+        const [error, setError] = useState("");
+        const [loading, setLoading] = useState(false);
+
+        const handleLogin = async () => {
+          setLoading(true);
+          try {
+            // Vérification via Supabase Auth ou table admins
+            const { data: admins, error: fetchError } = await supabase
+              .from("admins")
+              .select("*");
+            
+            if (fetchError) throw fetchError;
+
+            const admin = admins.find(
+              (a) =>
+                (a.login === identifier ||
+                  a.email === identifier ||
+                  a.phone === identifier) &&
+                atob(a.password) === password,
+            );
+
+            if (admin) {
+              const session = {
+                loggedIn: true,
+                adminId: admin.id,
+                login: admin.login,
+              };
+              setAdminSession(session);
+              onLogin(session);
+            } else {
+              setError("Identifiant ou mot de passe incorrect.");
+            }
+          } catch (e) {
+            setError("Erreur de connexion: " + e.message);
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        return React.createElement(
+          "div",
+          { className: "app-container" },
+          React.createElement(LoadingOverlay, {
+            visible: loading,
+            message: "Connexion...",
+          }),
+          React.createElement(
+            "div",
+            { className: "app-header" },
+            React.createElement("div", { className: "wave-icon" }, "🌊"),
+            React.createElement("h1", null, "White Wave"),
+            React.createElement(
+              "p",
+              { className: "subtitle" },
+              "Espace administrateur",
+            ),
+          ),
+          React.createElement(
+            "div",
+            { className: "card admin-login-card animate-fadeInUp" },
+            React.createElement(
+              "div",
+              { style: { textAlign: "center", marginBottom: 25 } },
+              React.createElement(
+                "span",
+                { style: { fontSize: "3rem" } },
+                "🔐",
+              ),
+              React.createElement(
+                "h3",
+                {
+                  style: {
+                    marginTop: 10,
+                    fontSize: "1.3rem",
+                    color: "var(--ww-text)",
+                  },
+                },
+                "Connexion Admin",
+              ),
+            ),
+            React.createElement(
+              "div",
+              { className: "form-group" },
+              React.createElement(
+                "label",
+                null,
+                "👤 Login / Email / Téléphone",
+              ),
+              React.createElement("input", {
+                type: "text",
+                placeholder: "Ex: White",
+                value: identifier,
+                onChange: (e) => {
+                  setIdentifier(e.target.value);
+                  setError("");
+                },
+              }),
+            ),
+            React.createElement(
+              "div",
+              { className: "form-group" },
+              React.createElement("label", null, "🔑 Mot de passe"),
+              React.createElement("input", {
+                type: "password",
+                placeholder: "Votre mot de passe",
+                value: password,
+                onChange: (e) => {
+                  setPassword(e.target.value);
+                  setError("");
+                },
+                onKeyDown: (e) => {
+                  if (e.key === "Enter") handleLogin();
+                },
+              }),
+            ),
+            React.createElement(
+              "div",
+              {
+                className: "error-msg",
+                style: {
+                  color: "#ef4444",
+                  fontSize: "0.8rem",
+                  marginBottom: 15,
+                  minHeight: 20,
+                },
+              },
+              error,
+            ),
+            React.createElement(
+              "button",
+              {
+                className: "btn btn-primary",
+                onClick: handleLogin,
+                disabled: loading,
+                style: { marginBottom: 12 },
+              },
+              loading ? "⏳ Connexion..." : "🔓 Se connecter",
+            ),
+            React.createElement(
+              "button",
+              {
+                className: "btn btn-outline",
+                onClick: onBack,
+                style: { width: "100%" },
+              },
+              "← Retour au site",
+            ),
+          ),
+        );
+      }
+
+      /* ============================================================
+         ADMIN DASHBOARD
+         ============================================================ */
+      function AdminDashboard({ onLogout }) {
+        const [activeTab, setActiveTab] = useState("reservations");
+        const [reservations, setReservations] = useState([]);
+        const [participants, setParticipants] = useState([]);
+        const [searchRes, setSearchRes] = useState("");
+        const [searchPart, setSearchPart] = useState("");
+        const [showNotif, setShowNotif] = useState(false);
+        const [selectedRes, setSelectedRes] = useState(null);
+        const [selectedPart, setSelectedPart] = useState(null);
+        const [toastMsg, setToastMsg] = useState("");
+        const [toastVisible, setToastVisible] = useState(false);
+        const [loading, setLoading] = useState(true);
+
+        const showToast = (msg) => {
+          setToastMsg(msg);
+          setToastVisible(true);
+          setTimeout(() => setToastVisible(false), 3000);
+        };
+
+        const refreshData = async () => {
+          setLoading(true);
+          try {
+            const [res, part] = await Promise.all([
+              getReservations(),
+              getParticipants(),
+            ]);
+            setReservations(res);
+            setParticipants(part);
+          } catch (e) {
+            showToast("❌ Erreur de chargement");
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        useEffect(() => {
+          refreshData();
+        }, []);
+
+        const unreadCount = reservations.filter((r) => !r.notified).length;
+
+        const filteredRes = reservations.filter((r) => {
+          const term = searchRes.toLowerCase();
+          return (
+            (r.last_name || "").toLowerCase().includes(term) ||
+            (r.first_name || "").toLowerCase().includes(term) ||
+            (r.email || "").toLowerCase().includes(term) ||
+            (r.role || "").toLowerCase().includes(term)
+          );
+        });
+
+        const filteredPart = participants.filter((p) => {
+          const term = searchPart.toLowerCase();
+          return (
+            (p.last_name || "").toLowerCase().includes(term) ||
+            (p.first_name || "").toLowerCase().includes(term) ||
+            (p.role || "").toLowerCase().includes(term)
+          );
+        });
+
+        const handleNotify = async (id) => {
+          if (confirm("⚠️ Confirmer que cette réservation a été notifiée ?")) {
+            try {
+              await updateReservation(id, { notified: true });
+              await refreshData();
+              showToast("✅ Marqué comme notifié");
+            } catch (e) {
+              showToast("❌ Erreur");
+            }
+          }
+        };
+
+        const handleDeleteRes = async (id) => {
+          if (confirm("Supprimer cette réservation ?")) {
+            try {
+              await deleteReservation(id);
+              await refreshData();
+              showToast("🗑️ Réservation supprimée");
+            } catch (e) {
+              showToast("❌ Erreur de suppression");
+            }
+          }
+        };
+
+        const handleGenerateFromRes = async (res) => {
+          if (!res.confirmed) {
+            alert(
+              "⚠️ Réservation non confirmée ! Vous devez d'abord confirmer la réservation avant de générer un badge.",
+            );
+            return;
+          }
+          const alreadyGen = await isBadgeAlreadyGenerated(
+            res.first_name,
+            res.last_name,
+            res.role,
+          );
+          if (alreadyGen) {
+            alert(
+              "⚠️ Un badge a déjà été généré pour " +
+                res.first_name +
+                " " +
+                res.last_name +
+                " en tant que " +
+                res.role +
+                ".",
+            );
+            return;
+          }
+          if (
+            confirm(
+              "✨ Confirmer la génération du badge pour " +
+                res.first_name +
+                " " +
+                res.last_name +
+                " ?",
+            )
+          ) {
+            try {
+              const level = getLevelFromRole(res.role);
+              const data = {
+                event: EVENT_NAME,
+                team: TEAM_NAME,
+                lastName: res.last_name,
+                firstName: res.first_name,
+                gender: res.gender,
+                date: EVENT_DATE,
+                role: res.role,
+                level,
+              };
+              await saveParticipant(data);
+              await refreshData();
+              showToast("✅ Badge généré avec succès");
+            } catch (e) {
+              showToast("❌ Erreur de génération");
+            }
+          }
+        };
+
+        const stats = {
+          reservations: reservations.length,
+          participants: participants.length,
+          unread: unreadCount,
+          vip: reservations.filter((r) => r.role === "VIP").length,
+          confirmed: reservations.filter((r) => r.confirmed).length,
+          pending: reservations.filter((r) => !r.confirmed).length,
+        };
+
+        return React.createElement(
+          "div",
+          { className: "app-container" },
+          React.createElement(LoadingOverlay, {
+            visible: loading,
+            message: "Chargement des données...",
+          }),
+          React.createElement(
+            "div",
+            { className: "app-header" },
+            React.createElement("div", { className: "wave-icon" }, "🌊"),
+            React.createElement("h1", null, "White Wave"),
+            React.createElement(
+              "p",
+              { className: "subtitle" },
+              "Tableau de bord administrateur",
+            ),
+          ),
+          React.createElement(
+            "div",
+            { className: "nav-bar" },
+            React.createElement(
+              "button",
+              {
+                className: "btn btn-outline",
+                onClick: () => window.location.reload(),
+              },
+              "🌊 Site public",
+            ),
+            React.createElement(
+              "button",
+              {
+                className: "btn btn-secondary",
+                onClick: () => {
+                  clearAdminSession();
+                  onLogout();
+                },
+              },
+              "🔓 Déconnexion",
+            ),
+          ),
+          React.createElement(
+            "div",
+            { className: "stats-grid animate-fadeIn" },
+            React.createElement(
+              "div",
+              { className: "stat-card" },
+              React.createElement(
+                "div",
+                { className: "stat-value" },
+                stats.reservations,
+              ),
+              React.createElement(
+                "div",
+                { className: "stat-label" },
+                "Réservations",
+              ),
+            ),
+            React.createElement(
+              "div",
+              { className: "stat-card" },
+              React.createElement(
+                "div",
+                { className: "stat-value" },
+                stats.participants,
+              ),
+              React.createElement(
+                "div",
+                { className: "stat-label" },
+                "Badges générés",
+              ),
+            ),
+            React.createElement(
+              "div",
+              { className: "stat-card" },
+              React.createElement(
+                "div",
+                { className: "stat-value" },
+                stats.confirmed,
+              ),
+              React.createElement(
+                "div",
+                { className: "stat-label" },
+                "Confirmés",
+              ),
+            ),
+            React.createElement(
+              "div",
+              { className: "stat-card" },
+              React.createElement(
+                "div",
+                { className: "stat-value" },
+                stats.pending,
+              ),
+              React.createElement(
+                "div",
+                { className: "stat-label" },
+                "En attente",
+              ),
+            ),
+            React.createElement(
+              "div",
+              { className: "stat-card" },
+              React.createElement(
+                "div",
+                { className: "stat-value" },
+                stats.unread,
+              ),
+              React.createElement(
+                "div",
+                { className: "stat-label" },
+                "Non notifiés",
+              ),
+            ),
+            React.createElement(
+              "div",
+              { className: "stat-card" },
+              React.createElement(
+                "div",
+                { className: "stat-value" },
+                stats.vip,
+              ),
+              React.createElement(
+                "div",
+                { className: "stat-label" },
+                "Groupes VIP",
+              ),
+            ),
+          ),
+          React.createElement(
+            "div",
+            { className: "admin-tabs" },
+            React.createElement(
+              "button",
+              {
+                className: `admin-tab ${activeTab === "reservations" ? "active" : ""}`,
+                onClick: () => setActiveTab("reservations"),
+              },
+              "📋 Réservations",
+              unreadCount > 0 &&
+                React.createElement(
+                  "span",
+                  { className: "admin-badge" },
+                  unreadCount,
+                ),
+            ),
+            React.createElement(
+              "button",
+              {
+                className: `admin-tab ${activeTab === "participants" ? "active" : ""}`,
+                onClick: () => setActiveTab("participants"),
+              },
+              "🎫 Participants",
+            ),
+            React.createElement(
+              "button",
+              {
+                className: `admin-tab ${activeTab === "generate" ? "active" : ""}`,
+                onClick: () => setActiveTab("generate"),
+              },
+              "✨ Générer badge",
+            ),
+            React.createElement(
+              "button",
+              {
+                className: `admin-tab ${activeTab === "admins" ? "active" : ""}`,
+                onClick: () => setActiveTab("admins"),
+              },
+              "👤 Admins",
+            ),
+          ),
+          activeTab === "reservations" &&
+            React.createElement(
+              "div",
+              { className: "card animate-fadeInUp" },
+              React.createElement(
+                "div",
+                {
+                  style: {
+                    display: "flex",
+                    gap: 10,
+                    alignItems: "center",
+                    marginBottom: 15,
+                    flexWrap: "wrap",
+                  },
+                },
+                React.createElement("input", {
+                  className: "search-box",
+                  style: { marginBottom: 0, flex: 1 },
+                  type: "text",
+                  placeholder: "🔍 Rechercher une réservation...",
+                  value: searchRes,
+                  onChange: (e) => setSearchRes(e.target.value),
+                }),
+                React.createElement(
+                  "button",
+                  {
+                    className: "btn btn-cyan btn-sm",
+                    onClick: () => setShowNotif(!showNotif),
+                  },
+                  `🔔 ${unreadCount}`,
+                ),
+              ),
+              showNotif &&
+                React.createElement(
+                  "div",
+                  { className: "notification-panel" },
+                  React.createElement("h4", null, "🔔 Notifications"),
+                  reservations.filter((r) => !r.notified).length === 0
+                    ? React.createElement(
+                        "div",
+                        {
+                          style: {
+                            color: "var(--ww-text-secondary)",
+                            fontSize: "0.8rem",
+                          },
+                        },
+                        "Aucune notification en attente.",
+                      )
+                    : reservations
+                        .filter((r) => !r.notified)
+                        .map((r) =>
+                          React.createElement(
+                            "div",
+                            {
+                              key: r.id,
+                              className: "notification-item unread",
+                            },
+                            React.createElement(
+                              "strong",
+                              null,
+                              `${r.first_name} ${r.last_name}`,
+                            ),
+                            React.createElement(
+                              "div",
+                              null,
+                              `Nouvelle réservation ${r.role}`,
+                            ),
+                            React.createElement(
+                              "div",
+                              { className: "notif-time" },
+                              formatDate(r.created_at),
+                            ),
+                          ),
+                        ),
+                ),
+              React.createElement(
+                "div",
+                { style: { overflowX: "auto" } },
+                React.createElement(
+                  "table",
+                  { className: "participants-table" },
+                  React.createElement(
+                    "thead",
+                    null,
+                    React.createElement(
+                      "tr",
+                      null,
+                      React.createElement("th", null, "Nom"),
+                      React.createElement("th", null, "Prénom"),
+                      React.createElement("th", null, "Contact"),
+                      React.createElement("th", null, "Rôle"),
+                      React.createElement("th", null, "Statut"),
+                      React.createElement("th", null, "Date"),
+                      React.createElement("th", null, "Actions"),
+                    ),
+                  ),
+                  React.createElement(
+                    "tbody",
+                    null,
+                    filteredRes.map((r) => {
+                      const cfg = LEVEL_CONFIG[getLevelFromRole(r.role)];
+                      return React.createElement(
+                        "tr",
+                        {
+                          key: r.id,
+                          className: "clickable-row",
+                          onClick: () => setSelectedRes(r),
+                        },
+                        React.createElement(
+                          "td",
+                          null,
+                          React.createElement("strong", null, r.last_name),
+                        ),
+                        React.createElement("td", null, r.first_name),
+                        React.createElement(
+                          "td",
+                          null,
+                          React.createElement(
+                            "div",
+                            { style: { fontSize: "0.75rem" } },
+                            r.phone,
+                          ),
+                          React.createElement(
+                            "div",
+                            {
+                              style: {
+                                fontSize: "0.7rem",
+                                color: "var(--ww-text-secondary)",
+                              },
+                            },
+                            r.email,
+                          ),
+                        ),
+                        React.createElement(
+                          "td",
+                          null,
+                          React.createElement(
+                            "div",
+                            { className: "role-cell" },
+                            React.createElement("div", {
+                              className: `role-dot ${cfg.className}`,
+                            }),
+                            React.createElement(
+                              "span",
+                              { className: "role-icon-table" },
+                              cfg.icon,
+                            ),
+                            React.createElement("span", null, r.role),
+                          ),
+                        ),
+                        React.createElement(
+                          "td",
+                          null,
+                          r.confirmed
+                            ? React.createElement(
+                                "span",
+                                { className: "status-badge status-confirmed" },
+                                "✅ Confirmé",
+                              )
+                            : React.createElement(
+                                "span",
+                                { className: "status-badge status-pending" },
+                                "⏳ En attente",
+                              ),
+                        ),
+                        React.createElement(
+                          "td",
+                          null,
+                          formatDate(r.created_at),
+                        ),
+                        React.createElement(
+                          "td",
+                          null,
+                          React.createElement(
+                            "div",
+                            { style: { display: "flex", gap: 6 } },
+                            !r.confirmed &&
+                              React.createElement(
+                                "button",
+                                {
+                                  className: "btn btn-outline btn-sm",
+                                  onClick: async (e) => {
+                                    e.stopPropagation();
+                                    if (
+                                      confirm(
+                                        "✅ Confirmer cette réservation ?",
+                                      )
+                                    ) {
+                                      try {
+                                        await updateReservation(r.id, {
+                                          confirmed: true,
+                                        });
+                                        await refreshData();
+                                        showToast("✅ Réservation confirmée");
+                                      } catch (err) {
+                                        showToast("❌ Erreur");
+                                      }
+                                    }
+                                  },
+                                },
+                                "✅",
+                              ),
+                            r.confirmed &&
+                              !r.notified &&
+                              React.createElement(
+                                "button",
+                                {
+                                  className: "btn btn-green btn-sm",
+                                  onClick: (e) => {
+                                    e.stopPropagation();
+                                    handleNotify(r.id);
+                                  },
+                                },
+                                "✓",
+                              ),
+                            r.confirmed &&
+                              React.createElement(
+                                "button",
+                                {
+                                  className: "btn btn-cyan btn-sm",
+                                  onClick: (e) => {
+                                    e.stopPropagation();
+                                    handleGenerateFromRes(r);
+                                  },
+                                },
+                                "✨",
+                              ),
+                            React.createElement(
+                              "button",
+                              {
+                                className: "btn btn-danger btn-sm",
+                                onClick: (e) => {
+                                  e.stopPropagation();
+                                  handleDeleteRes(r.id);
+                                },
+                              },
+                              "🗑️",
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ),
+            ),
+          activeTab === "participants" &&
+            React.createElement(ParticipantsList, {
+              participants: filteredPart,
+              search: searchPart,
+              setSearch: setSearchPart,
+              onView: setSelectedPart,
+              onRefresh: refreshData,
+            }),
+          activeTab === "generate" &&
+            React.createElement(GenerateBadgeTab, { onGenerated: refreshData }),
+          activeTab === "admins" && React.createElement(AdminAccountsTab, {}),
+          selectedRes &&
+            React.createElement(ReservationDetailModal, {
+              reservation: selectedRes,
+              onClose: () => setSelectedRes(null),
+              onGenerate: handleGenerateFromRes,
+              onNotify: handleNotify,
+              onDelete: handleDeleteRes,
+              onRefresh: refreshData,
+            }),
+          selectedPart &&
+            React.createElement(ParticipantDetailModal, {
+              participant: selectedPart,
+              onClose: () => setSelectedPart(null),
+            }),
+          React.createElement(Toast, {
+            message: toastMsg,
+            visible: toastVisible,
+          }),
+        );
+      }
+
+      /* ============================================================
+         PARTICIPANTS LIST
+         ============================================================ */
+      function ParticipantsList({
+        participants,
+        search,
+        setSearch,
+        onView,
+        onRefresh,
+      }) {
+        const enriched = participants.map((p) => ({
+          ...p,
+          computedLevel: p.level || getLevelFromRole(p.role),
+        }));
+        const countByRole = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+        enriched.forEach((p) => {
+          const lvl = p.computedLevel;
+          if (countByRole.hasOwnProperty(lvl)) countByRole[lvl]++;
+        });
+        const roleCategories = [
+          { level: 0, label: "VIP", icon: "👑" },
+          { level: 1, label: "Couples", icon: "💕" },
+          { level: 2, label: "Participants", icon: "🎫" },
+          { level: 3, label: "Organisateurs", icon: "👔" },
+          { level: 4, label: "Sponsors", icon: "🤝" },
+          { level: 5, label: "Staff", icon: "🛡️" },
+        ];
+        const [activeFilter, setActiveFilter] = useState(null);
+        const filtered = enriched.filter((p) => {
+          const term = search.toLowerCase();
+          const matchesSearch =
+            (p.last_name || "").toLowerCase().includes(term) ||
+            (p.first_name || "").toLowerCase().includes(term) ||
+            (p.role || "").toLowerCase().includes(term);
+          const matchesFilter =
+            activeFilter === null || p.computedLevel === activeFilter;
+          return matchesSearch && matchesFilter;
+        });
+
+        return React.createElement(
+          "div",
+          { className: "card animate-fadeInUp" },
+          React.createElement(
+            "div",
+            { className: "card-title" },
+            "🎫 Participants générés",
+          ),
+          React.createElement(
+            "div",
+            {
+              style: {
+                display: "flex",
+                gap: 10,
+                flexWrap: "wrap",
+                marginBottom: 15,
+              },
+            },
+            roleCategories.map((cat) =>
+              React.createElement(
+                "div",
+                {
+                  key: cat.level,
+                  className: `participants-count ${activeFilter === cat.level ? "active" : ""}`,
+                  onClick: () =>
+                    setActiveFilter(
+                      activeFilter === cat.level ? null : cat.level,
+                    ),
+                },
+                `${cat.icon} ${cat.label}: ${countByRole[cat.level]}`,
+              ),
+            ),
+          ),
+          activeFilter !== null &&
+            React.createElement(
+              "div",
+              { style: { marginBottom: 15 } },
+              React.createElement(
+                "button",
+                {
+                  className: "btn btn-outline btn-sm",
+                  onClick: () => setActiveFilter(null),
+                },
+                "❌ Effacer le filtre",
+              ),
+            ),
+          React.createElement("input", {
+            className: "search-box",
+            type: "text",
+            placeholder: "🔍 Rechercher...",
+            value: search,
+            onChange: (e) => setSearch(e.target.value),
+          }),
+          React.createElement(
+            "div",
+            { style: { overflowX: "auto" } },
+            React.createElement(
+              "table",
+              { className: "participants-table" },
+              React.createElement(
+                "thead",
+                null,
+                React.createElement(
+                  "tr",
+                  null,
+                  React.createElement("th", null, "Nom"),
+                  React.createElement("th", null, "Prénom"),
+                  React.createElement("th", null, "Sexe"),
+                  React.createElement("th", null, "Rôle"),
+                  React.createElement("th", null, "Date création"),
+                ),
+              ),
+              React.createElement(
+                "tbody",
+                null,
+                filtered.map((p, i) => {
+                  const cfg = LEVEL_CONFIG[p.computedLevel];
+                  const genderedRole = getGenderedRole(p.role, p.gender);
+                  return React.createElement(
+                    "tr",
+                    {
+                      key: p.id || i,
+                      className: "clickable-row",
+                      onClick: () => onView(p),
+                    },
+                    React.createElement(
+                      "td",
+                      null,
+                      React.createElement("strong", null, p.last_name || "-"),
+                    ),
+                    React.createElement("td", null, p.first_name || "-"),
+                    React.createElement("td", null, p.gender || "-"),
+                    React.createElement(
+                      "td",
+                      null,
+                      React.createElement(
+                        "div",
+                        { className: "role-cell" },
+                        React.createElement("div", {
+                          className: `role-dot ${cfg.className}`,
+                        }),
+                        React.createElement(
+                          "span",
+                          { className: "role-icon-table" },
+                          cfg.icon,
+                        ),
+                        React.createElement("span", null, genderedRole),
+                      ),
+                    ),
+                    React.createElement("td", null, formatDate(p.created_at)),
+                  );
+                }),
+              ),
+            ),
+          ),
+          React.createElement(
+            "div",
+            {
+              style: {
+                marginTop: 20,
+                textAlign: "center",
+                color: "var(--ww-text-secondary)",
+                fontSize: "0.8rem",
+              },
+            },
+            `Total affiché: ${filtered.length} / ${participants.length} participant${participants.length > 1 ? "s" : ""}`,
+          ),
+        );
+      }
+
+      /* ============================================================
+         GENERATE BADGE TAB
+         ============================================================ */
+      function GenerateBadgeTab({ onGenerated }) {
+        const [lastName, setLastName] = useState("");
+        const [firstName, setFirstName] = useState("");
+        const [gender, setGender] = useState("");
+        const [role, setRole] = useState("");
+        const [generated, setGenerated] = useState(null);
+        const [loading, setLoading] = useState(false);
+
+        const handleGenerate = async () => {
+          if (!lastName.trim() || !firstName.trim() || !gender || !role) {
+            alert("Veuillez remplir tous les champs !");
+            return;
+          }
+          setLoading(true);
+          try {
+            const alreadyGen = await isBadgeAlreadyGenerated(
+              firstName.trim(),
+              lastName.trim(),
+              role,
+            );
+            if (alreadyGen) {
+              alert(
+                "⚠️ Un badge a déjà été généré pour " +
+                  firstName.trim() +
+                  " " +
+                  lastName.trim() +
+                  " en tant que " +
+                  role +
+                  ".",
+              );
+              setLoading(false);
+              return;
+            }
+            const level = getLevelFromRole(role);
+            const data = {
+              event: EVENT_NAME,
+              team: TEAM_NAME,
+              lastName: lastName.trim(),
+              firstName: firstName.trim(),
+              gender,
+              date: EVENT_DATE,
+              role,
+              level,
+            };
+            await saveParticipant(data);
+            setGenerated(data);
+            onGenerated();
+          } catch (e) {
+            alert("Erreur: " + e.message);
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        if (generated) {
+          const level = generated.level || 0;
+          const encoded = btoa(JSON.stringify(generated));
+          const badgeUrl =
+            window.location.origin + window.location.pathname + "#" + encoded;
+          return React.createElement(
+            "div",
+            { className: "card animate-fadeInUp" },
+            React.createElement(
+              "div",
+              { className: "generated-layout" },
+              React.createElement(
+                "div",
+                null,
+                React.createElement(Badge, { data: generated }),
+              ),
+              React.createElement(
+                "div",
+                null,
+                React.createElement(
+                  "div",
+                  { className: "card-title" },
+                  "📱 QR Code",
+                ),
+                React.createElement(
+                  "div",
+                  { className: "qr-wrapper" },
+                  React.createElement(StyledQRCode, { url: badgeUrl, level }),
+                  React.createElement(
+                    "div",
+                    { className: "qr-label" },
+                    "Scannez ce QR code pour vérifier le badge",
+                  ),
+                ),
+                React.createElement(
+                  "div",
+                  { className: "btn-group" },
+                  React.createElement(
+                    "button",
+                    {
+                      className: "btn btn-cyan",
+                      onClick: () => {
+                        const canvas = document.querySelector(
+                          ".qr-container canvas",
+                        );
+                        if (canvas) {
+                          const link = document.createElement("a");
+                          link.download = `badge-qr-${generated.lastName}-${generated.firstName}.png`;
+                          link.href = canvas.toDataURL("image/png");
+                          link.click();
+                        }
+                      },
+                    },
+                    "💾 Télécharger QR",
+                  ),
+                  React.createElement(
+                    "button",
+                    {
+                      className: "btn btn-secondary",
+                      onClick: () => setGenerated(null),
+                    },
+                    "🆕 Nouveau",
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
+        return React.createElement(
+          "div",
+          { className: "card animate-fadeInUp" },
+          React.createElement(
+            "div",
+            { className: "card-title" },
+            "✨ Générer un badge",
+          ),
+          React.createElement(
+            "div",
+            { className: "form-row" },
+            React.createElement(
+              "div",
+              { className: "form-group" },
+              React.createElement("label", null, "👤 Nom"),
+              React.createElement("input", {
+                type: "text",
+                placeholder: "Ex: Doe",
+                value: lastName,
+                onChange: (e) => setLastName(e.target.value),
+              }),
+            ),
+            React.createElement(
+              "div",
+              { className: "form-group" },
+              React.createElement("label", null, "📝 Prénom"),
+              React.createElement("input", {
+                type: "text",
+                placeholder: "Ex: John",
+                value: firstName,
+                onChange: (e) => setFirstName(e.target.value),
+              }),
+            ),
+          ),
+          React.createElement(
+            "div",
+            { className: "form-row" },
+            React.createElement(
+              "div",
+              { className: "form-group" },
+              React.createElement("label", null, "⚧ Sexe"),
+              React.createElement(
+                "div",
+                { className: "select-wrapper" },
+                React.createElement(
+                  "select",
+                  { value: gender, onChange: (e) => setGender(e.target.value) },
+                  React.createElement("option", { value: "" }, "Choisir..."),
+                  React.createElement(
+                    "option",
+                    { value: "Masculin" },
+                    "Masculin",
+                  ),
+                  React.createElement(
+                    "option",
+                    { value: "Féminin" },
+                    "Féminin",
+                  ),
+                ),
+              ),
+            ),
+            React.createElement(
+              "div",
+              { className: "form-group" },
+              React.createElement("label", null, "⭐ Rôle"),
+              React.createElement(
+                "div",
+                { className: "select-wrapper" },
+                React.createElement(
+                  "select",
+                  { value: role, onChange: (e) => setRole(e.target.value) },
+                  React.createElement("option", { value: "" }, "Choisir..."),
+                  React.createElement("option", { value: "VIP" }, "👑 VIP"),
+                  React.createElement(
+                    "option",
+                    { value: "Couple" },
+                    "💕 COUPLE",
+                  ),
+                  React.createElement(
+                    "option",
+                    { value: "Sponsor" },
+                    "🤝 SPONSOR",
+                  ),
+                  React.createElement(
+                    "option",
+                    { value: "organisateur" },
+                    "📋 ORGANISATEUR",
+                  ),
+                  React.createElement(
+                    "option",
+                    { value: "Participant" },
+                    "🎫 PARTICIPANT",
+                  ),
+                  React.createElement(
+                    "option",
+                    { value: "staff" },
+                    "🛡️ STAFF",
+                  ),
+                ),
+              ),
+            ),
+          ),
+          React.createElement(
+            "button",
+            {
+              className: "btn btn-primary",
+              onClick: handleGenerate,
+              disabled: loading,
+            },
+            loading ? "⏳ Génération..." : "✨ Générer le Badge & QR Code",
+          ),
+        );
+      }
+
+      /* ============================================================
+         ADMIN ACCOUNTS TAB
+         ============================================================ */
+      function AdminAccountsTab() {
+        const [admins, setAdmins] = useState([]);
+        const [login, setLogin] = useState("");
+        const [email, setEmail] = useState("");
+        const [phone, setPhone] = useState("");
+        const [password, setPassword] = useState("");
+        const [toastMsg, setToastMsg] = useState("");
+        const [toastVisible, setToastVisible] = useState(false);
+        const [masterPass, setMasterPass] = useState("");
+        const [unlocked, setUnlocked] = useState(false);
+        const [masterError, setMasterError] = useState("");
+        const [loading, setLoading] = useState(false);
+
+        const loadAdmins = async () => {
+          const { data, error } = await supabase.from("admins").select("*");
+          if (!error) setAdmins(data || []);
+        };
+
+        useEffect(() => {
+          loadAdmins();
+        }, []);
+
+        const showToast = (msg) => {
+          setToastMsg(msg);
+          setToastVisible(true);
+          setTimeout(() => setToastVisible(false), 3000);
+        };
+
+        const handleUnlock = () => {
+          // Mot de passe maître en dur pour l'exemple - à changer !
+          if (masterPass === "WhiteWave2026!") {
+            setUnlocked(true);
+            setMasterError("");
+          } else {
+            setMasterError("Mot de passe maître incorrect.");
+          }
+        };
+
+        const handleCreate = async () => {
+          if (
+            !login.trim() ||
+            !email.trim() ||
+            !phone.trim() ||
+            !password.trim()
+          ) {
+            alert("Tous les champs sont requis");
+            return;
+          }
+          setLoading(true);
+          try {
+            const { data: existing } = await supabase
+              .from("admins")
+              .select("id")
+              .or(`login.eq.${login.trim()},email.eq.${email.trim()}`);
+
+            if (existing && existing.length > 0) {
+              alert("Ce login ou email existe déjà");
+              setLoading(false);
+              return;
+            }
+
+            const { error } = await supabase.from("admins").insert([
+              {
+                login: login.trim(),
+                email: email.trim(),
+                phone: phone.trim(),
+                password: btoa(password),
+              },
+            ]);
+
+            if (error) throw error;
+
+            await loadAdmins();
+            setLogin("");
+            setEmail("");
+            setPhone("");
+            setPassword("");
+            showToast("✅ Compte admin créé");
+          } catch (e) {
+            alert("Erreur: " + e.message);
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        if (!unlocked) {
+          return React.createElement(
+            "div",
+            { className: "card animate-fadeInUp" },
+            React.createElement(
+              "div",
+              { className: "card-title" },
+              "🔐 Accès sécurisé",
+            ),
+            React.createElement(
+              "div",
+              { style: { textAlign: "center", padding: "20px 0" } },
+              React.createElement(
+                "div",
+                { style: { fontSize: "3rem", marginBottom: 15 } },
+                "🔒",
+              ),
+              React.createElement(
+                "p",
+                {
+                  style: {
+                    color: "var(--ww-text-secondary)",
+                    marginBottom: 20,
+                    fontSize: "0.9rem",
+                  },
+                },
+                "Cette section est protégée. Veuillez saisir le mot de passe maître pour accéder à la gestion des administrateurs.",
+              ),
+              React.createElement("input", {
+                type: "password",
+                placeholder: "Mot de passe maître",
+                value: masterPass,
+                onChange: (e) => {
+                  setMasterPass(e.target.value);
+                  setMasterError("");
+                },
+                onKeyDown: (e) => {
+                  if (e.key === "Enter") handleUnlock();
+                },
+                style: {
+                  width: "100%",
+                  maxWidth: 300,
+                  padding: "14px 16px",
+                  border: "2px solid var(--ww-input-border)",
+                  borderRadius: 14,
+                  background: "var(--ww-input-bg)",
+                  color: "var(--ww-text)",
+                  fontFamily: "Montserrat, sans-serif",
+                  fontSize: "1rem",
+                  textAlign: "center",
+                  marginBottom: 15,
+                },
+              }),
+              masterError &&
+                React.createElement(
+                  "div",
+                  {
+                    style: {
+                      color: "#ef4444",
+                      fontSize: "0.8rem",
+                      marginBottom: 15,
+                    },
+                  },
+                  masterError,
+                ),
+              React.createElement(
+                "button",
+                {
+                  className: "btn btn-primary",
+                  onClick: handleUnlock,
+                  style: { maxWidth: 300 },
+                },
+                "🔓 Déverrouiller",
+              ),
+            ),
+          );
+        }
+
+        return React.createElement(
+          "div",
+          { className: "card animate-fadeInUp" },
+          React.createElement(
+            "div",
+            { className: "card-title" },
+            "👤 Gérer les administrateurs",
+          ),
+          React.createElement(
+            "div",
+            { style: { marginBottom: 25 } },
+            React.createElement(
+              "h4",
+              {
+                style: {
+                  fontSize: "0.9rem",
+                  marginBottom: 12,
+                  color: "var(--ww-text)",
+                },
+              },
+              "Créer un nouveau compte",
+            ),
+            React.createElement(
+              "div",
+              { className: "form-row" },
+              React.createElement(
+                "div",
+                { className: "form-group" },
+                React.createElement("label", null, "👤 Login"),
+                React.createElement("input", {
+                  type: "text",
+                  placeholder: "Ex: nouveau_admin",
+                  value: login,
+                  onChange: (e) => setLogin(e.target.value),
+                }),
+              ),
+              React.createElement(
+                "div",
+                { className: "form-group" },
+                React.createElement("label", null, "📧 Email"),
+                React.createElement("input", {
+                  type: "email",
+                  placeholder: "admin@whitewave.com",
+                  value: email,
+                  onChange: (e) => setEmail(e.target.value),
+                }),
+              ),
+            ),
+            React.createElement(
+              "div",
+              { className: "form-row" },
+              React.createElement(
+                "div",
+                { className: "form-group" },
+                React.createElement("label", null, "📱 Téléphone"),
+                React.createElement("input", {
+                  type: "tel",
+                  placeholder: "+33 6 00 00 00 00",
+                  value: phone,
+                  onChange: (e) => setPhone(e.target.value),
+                }),
+              ),
+              React.createElement(
+                "div",
+                { className: "form-group" },
+                React.createElement("label", null, "🔑 Mot de passe"),
+                React.createElement("input", {
+                  type: "password",
+                  placeholder: "Mot de passe",
+                  value: password,
+                  onChange: (e) => setPassword(e.target.value),
+                }),
+              ),
+            ),
+            React.createElement(
+              "button",
+              {
+                className: "btn btn-primary",
+                onClick: handleCreate,
+                disabled: loading,
+              },
+              loading ? "⏳ Création..." : "➕ Créer le compte",
+            ),
+          ),
+          React.createElement(
+            "h4",
+            {
+              style: {
+                fontSize: "0.9rem",
+                marginBottom: 12,
+                color: "var(--ww-text)",
+              },
+            },
+            "Comptes existants",
+          ),
+          React.createElement(
+            "div",
+            { style: { overflowX: "auto" } },
+            React.createElement(
+              "table",
+              { className: "participants-table" },
+              React.createElement(
+                "thead",
+                null,
+                React.createElement(
+                  "tr",
+                  null,
+                  React.createElement("th", null, "Login"),
+                  React.createElement("th", null, "Email"),
+                  React.createElement("th", null, "Téléphone"),
+                  React.createElement("th", null, "Créé le"),
+                ),
+              ),
+              React.createElement(
+                "tbody",
+                null,
+                admins.map((a) =>
+                  React.createElement(
+                    "tr",
+                    { key: a.id },
+                    React.createElement(
+                      "td",
+                      null,
+                      React.createElement("strong", null, a.login),
+                    ),
+                    React.createElement("td", null, a.email),
+                    React.createElement("td", null, a.phone),
+                    React.createElement("td", null, formatDate(a.created_at)),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          React.createElement(Toast, {
+            message: toastMsg,
+            visible: toastVisible,
+          }),
+        );
+      }
+
+      /* ============================================================
+         RESERVATION DETAIL MODAL
+         ============================================================ */
+      function ReservationDetailModal({
+        reservation,
+        onClose,
+        onGenerate,
+        onNotify,
+        onDelete,
+        onRefresh,
+      }) {
+        const cfg = LEVEL_CONFIG[getLevelFromRole(reservation.role)];
+        return React.createElement(
+          "div",
+          { className: "modal-overlay", onClick: onClose },
+          React.createElement(
+            "div",
+            {
+              className: "modal-content",
+              onClick: (e) => e.stopPropagation(),
+              style: { maxWidth: 450, textAlign: "left" },
+            },
+            React.createElement(
+              "div",
+              {
+                style: {
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 20,
+                },
+              },
+              React.createElement("h3", null, "📋 Détails de la réservation"),
+              React.createElement(
+                "button",
+                {
+                  onClick: onClose,
+                  style: {
+                    background: "none",
+                    border: "none",
+                    fontSize: "1.5rem",
+                    cursor: "pointer",
+                    color: "var(--ww-text-secondary)",
+                  },
+                },
+                "×",
+              ),
+            ),
+            React.createElement(
+              "div",
+              {
+                style: {
+                  lineHeight: 2,
+                  color: "var(--ww-text)",
+                  fontSize: "0.9rem",
+                },
+              },
+              React.createElement(
+                "p",
+                null,
+                React.createElement("strong", null, "Nom : "),
+                `${reservation.first_name} ${reservation.last_name}`,
+              ),
+              React.createElement(
+                "p",
+                null,
+                React.createElement("strong", null, "Sexe : "),
+                reservation.gender,
+              ),
+              React.createElement(
+                "p",
+                null,
+                React.createElement("strong", null, "Téléphone : "),
+                reservation.phone,
+              ),
+              React.createElement(
+                "p",
+                null,
+                React.createElement("strong", null, "Email : "),
+                reservation.email,
+              ),
+              React.createElement(
+                "p",
+                null,
+                React.createElement("strong", null, "Rôle : "),
+                React.createElement(
+                  "span",
+                  { style: { color: cfg.color, fontWeight: 700 } },
+                  `${cfg.icon} ${reservation.role}`,
+                ),
+              ),
+              reservation.vip_count &&
+                React.createElement(
+                  "p",
+                  null,
+                  React.createElement("strong", null, "Groupe VIP : "),
+                  `${reservation.vip_count} personnes`,
+                ),
+              React.createElement(
+                "p",
+                null,
+                React.createElement("strong", null, "Date : "),
+                formatDate(reservation.created_at),
+              ),
+              React.createElement(
+                "p",
+                null,
+                React.createElement("strong", null, "Statut : "),
+                reservation.confirmed
+                  ? React.createElement(
+                      "span",
+                      { className: "status-badge status-confirmed" },
+                      "✅ Confirmé",
+                    )
+                  : React.createElement(
+                      "span",
+                      { className: "status-badge status-pending" },
+                      "⏳ En attente",
+                    ),
+              ),
+            ),
+            React.createElement(
+              "div",
+              { className: "btn-group", style: { marginTop: 25 } },
+              !reservation.confirmed &&
+                React.createElement(
+                  "button",
+                  {
+                    className: "btn btn-outline",
+                    onClick: async () => {
+                      if (confirm("✅ Confirmer cette réservation ?")) {
+                        try {
+                          await updateReservation(reservation.id, {
+                            confirmed: true,
+                          });
+                          await onRefresh();
+                          onClose();
+                        } catch (e) {
+                          alert("Erreur");
+                        }
+                      }
+                    },
+                  },
+                  "✅ Confirmer",
+                ),
+              reservation.confirmed &&
+                !reservation.notified &&
+                React.createElement(
+                  "button",
+                  {
+                    className: "btn btn-green",
+                    onClick: () => {
+                      onNotify(reservation.id);
+                      onClose();
+                    },
+                  },
+                  "✓ Marquer notifié",
+                ),
+              reservation.confirmed &&
+                React.createElement(
+                  "button",
+                  {
+                    className: "btn btn-cyan",
+                    onClick: () => {
+                      onGenerate(reservation);
+                      onClose();
+                    },
+                  },
+                  "✨ Générer badge",
+                ),
+              React.createElement(
+                "button",
+                {
+                  className: "btn btn-danger",
+                  onClick: () => {
+                    if (confirm("Supprimer ?")) {
+                      onDelete(reservation.id);
+                      onClose();
+                    }
+                  },
+                },
+                "🗑️ Supprimer",
+              ),
+            ),
+          ),
+        );
+      }
+
+      /* ============================================================
+         PARTICIPANT DETAIL MODAL
+         ============================================================ */
+      function ParticipantDetailModal({ participant, onClose }) {
+        const level = participant.level || 0;
+        const cfg = LEVEL_CONFIG[level];
+        const data = {
+          firstName: participant.first_name,
+          lastName: participant.last_name,
+          gender: participant.gender,
+          role: participant.role,
+          level: participant.level,
+        };
+        const encoded = btoa(JSON.stringify(data));
+        const badgeUrl =
+          window.location.origin + window.location.pathname + "#" + encoded;
+        return React.createElement(
+          "div",
+          { className: "modal-overlay", onClick: onClose },
+          React.createElement(
+            "div",
+            {
+              className: "modal-content",
+              onClick: (e) => e.stopPropagation(),
+              style: {
+                maxWidth: 900,
+                display: "flex",
+                flexDirection: "column",
+              },
+            },
+            React.createElement(
+              "div",
+              {
+                style: {
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 20,
+                },
+              },
+              React.createElement("h3", null, "🎫 Détail du participant"),
+              React.createElement(
+                "button",
+                {
+                  onClick: onClose,
+                  style: {
+                    background: "none",
+                    border: "none",
+                    fontSize: "1.5rem",
+                    cursor: "pointer",
+                    color: "var(--ww-text-secondary)",
+                  },
+                },
+                "×",
+              ),
+            ),
+            React.createElement(
+              "div",
+              {
+                style: {
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 30,
+                  marginBottom: 25,
+                  alignItems: "start",
+                },
+              },
+              React.createElement(
+                "div",
+                null,
+                React.createElement(Badge, { data }),
+              ),
+              React.createElement(
+                "div",
+                {
+                  style: { display: "flex", flexDirection: "column", gap: 20 },
+                },
+                React.createElement(
+                  "div",
+                  {
+                    className: "qr-wrapper",
+                    style: { padding: 10, width: "100%" },
+                  },
+                  React.createElement(StyledQRCode, { url: badgeUrl, level }),
+                ),
+                React.createElement(
+                  "div",
+                  {
+                    className: "btn-group",
+                    style: { width: "100%", flexDirection: "column" },
+                  },
+                  React.createElement(
+                    "button",
+                    {
+                      className: "btn btn-cyan",
+                      onClick: () => {
+                        const canvas = document.querySelector(
+                          ".qr-container canvas",
+                        );
+                        if (canvas) {
+                          const link = document.createElement("a");
+                          link.download = `badge-qr-${participant.last_name}-${participant.first_name}.png`;
+                          link.href = canvas.toDataURL("image/png");
+                          link.click();
+                        }
+                      },
+                    },
+                    "💾 Télécharger QR",
+                  ),
+                  React.createElement(
+                    "button",
+                    {
+                      className: "btn btn-secondary",
+                      onClick: () => {
+                        navigator.clipboard.writeText(badgeUrl);
+                        alert("Lien copié !");
+                      },
+                    },
+                    "🔗 Partager",
+                  ),
+                  React.createElement(
+                    "button",
+                    {
+                      className: "btn btn-secondary",
+                      onClick: () => window.print(),
+                    },
+                    "🖨️ Imprimer",
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
+      /* ============================================================
+         SCAN PAGE
+         ============================================================ */
+      function ScanPage({ data }) {
+        const [showInfo, setShowInfo] = useState(false);
+        const genderedRole = getGenderedRole(data.role, data.gender);
+        const level = data.level || 0;
+        return React.createElement(
+          "div",
+          { className: "app-container page-scan" },
+          React.createElement(
+            "div",
+            { className: "app-header" },
+            React.createElement("div", { className: "wave-icon" }, "🌊"),
+            React.createElement("h1", null, "White Wave"),
+            React.createElement(
+              "p",
+              { className: "subtitle" },
+              "Vérification de badge",
+            ),
+          ),
+          React.createElement(
+            "div",
+            { className: "scan-verified-banner animate-fadeIn" },
+            React.createElement(
+              "span",
+              { style: { fontSize: "1.5rem" } },
+              "✅",
+            ),
+            React.createElement(
+              "span",
+              null,
+              "Badge vérifié ! Ce badge est authentique.",
+            ),
+          ),
+          React.createElement(
+            "div",
+            { className: "generated-layout" },
+            React.createElement(
+              "div",
+              { className: "animate-fadeInUp" },
+              React.createElement(Badge, { data }),
+            ),
+            React.createElement(
+              "div",
+              {
+                className: "card animate-fadeInUp",
+                style: { animationDelay: "0.2s" },
+              },
+              React.createElement(
+                "div",
+                { className: "card-title" },
+                "🔒 Informations de vérification",
+              ),
+              React.createElement(
+                "div",
+                {
+                  style: {
+                    color: "var(--ww-text-secondary)",
+                    fontSize: "0.9rem",
+                    lineHeight: 1.8,
+                    marginBottom: 20,
+                  },
+                },
+                React.createElement(
+                  "p",
+                  null,
+                  React.createElement(
+                    "strong",
+                    { style: { color: "var(--ww-text)" } },
+                    "Événement : ",
+                  ),
+                  EVENT_NAME,
+                ),
+                React.createElement(
+                  "p",
+                  null,
+                  React.createElement(
+                    "strong",
+                    { style: { color: "var(--ww-text)" } },
+                    "Date : ",
+                  ),
+                  EVENT_DATE,
+                ),
+                React.createElement(
+                  "p",
+                  null,
+                  React.createElement(
+                    "strong",
+                    { style: { color: "var(--ww-text)" } },
+                    "Équipe : ",
+                  ),
+                  TEAM_NAME,
+                ),
+                React.createElement(
+                  "p",
+                  null,
+                  React.createElement(
+                    "strong",
+                    { style: { color: "var(--ww-text)" } },
+                    "Participant : ",
+                  ),
+                  data.firstName + " " + data.lastName,
+                ),
+                React.createElement(
+                  "p",
+                  null,
+                  React.createElement(
+                    "strong",
+                    { style: { color: "var(--ww-text)" } },
+                    "Rôle : ",
+                  ),
+                  data.role,
+                ),
+                React.createElement(
+                  "p",
+                  null,
+                  React.createElement(
+                    "strong",
+                    { style: { color: "var(--ww-text)" } },
+                    "Niveau : ",
+                  ),
+                  genderedRole,
+                ),
+              ),
+              React.createElement(
+                "div",
+                {
+                  style: {
+                    background: "rgba(20,184,166,0.1)",
+                    border: "1px solid rgba(20,184,166,0.3)",
+                    borderRadius: 12,
+                    padding: 16,
+                    textAlign: "center",
+                    marginBottom: 15,
+                  },
+                },
+                React.createElement(
+                  "div",
+                  { style: { fontSize: "2rem", marginBottom: 8 } },
+                  "✅",
+                ),
+                React.createElement(
+                  "div",
+                  {
+                    style: {
+                      color: "#14b8a6",
+                      fontWeight: 700,
+                      fontSize: "1rem",
+                    },
+                  },
+                  "Badge Valide",
+                ),
+                React.createElement(
+                  "div",
+                  {
+                    style: {
+                      color: "var(--ww-text-secondary)",
+                      fontSize: "0.75rem",
+                      marginTop: 4,
+                    },
+                  },
+                  "Vérifié le " + new Date().toLocaleDateString("fr-FR"),
+                ),
+              ),
+              React.createElement(
+                "button",
+                {
+                  className: "btn btn-primary",
+                  onClick: () => setShowInfo(true),
+                  style: { width: "100%" },
+                },
+                "ℹ️ Voir mes avantages",
+              ),
+            ),
+          ),
+          showInfo &&
+            React.createElement(InfoModal, {
+              role: data.role,
+              onClose: () => setShowInfo(false),
+            }),
+        );
+      }
+
+      /* ============================================================
+         SCANNER PAGE
+         ============================================================ */
+      function ScannerPage({ onScan, onBack }) {
+        const [scanning, setScanning] = useState(false);
+        const [error, setError] = useState("");
+        const scannerRef = useRef(null);
+        useEffect(() => {
+          if (!scanning) return;
+          const startScanner = async () => {
+            try {
+              setError("");
+              scannerRef.current = new Html5Qrcode("reader");
+              await scannerRef.current.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText) => {
+                  try {
+                    const hash = decodedText.split("#")[1];
+                    if (hash) {
+                      const data = JSON.parse(atob(hash));
+                      scannerRef.current.stop().then(() => {
+                        setScanning(false);
+                        onScan(data);
+                      });
+                    }
+                  } catch (e) {
+                    setError("QR Code invalide: " + e.message);
+                  }
+                },
+                (error) => {},
+              );
+            } catch (e) {
+              setError(
+                "Erreur caméra: " + e.message + ". Vérifiez les permissions.",
+              );
+              setScanning(false);
+            }
+          };
+          startScanner();
+          return () => {
+            if (scannerRef.current) scannerRef.current.stop().catch(() => {});
+          };
+        }, [scanning]);
+
+        return React.createElement(
+          "div",
+          { className: "app-container" },
+          React.createElement(
+            "div",
+            { className: "app-header" },
+            React.createElement("div", { className: "wave-icon" }, "🌊"),
+            React.createElement("h1", null, "White Wave"),
+            React.createElement(
+              "p",
+              { className: "subtitle" },
+              "Scanner un badge",
+            ),
+          ),
+          React.createElement(
+            "div",
+            {
+              className: "card animate-fadeInUp",
+              style: { maxWidth: 500, margin: "0 auto" },
+            },
+            React.createElement(
+              "div",
+              { className: "card-title" },
+              "📷 Scanner un QR Code",
+            ),
+            error &&
+              React.createElement(
+                "div",
+                {
+                  style: {
+                    background: "#fee2e2",
+                    border: "1px solid #fecaca",
+                    borderRadius: 8,
+                    padding: 12,
+                    marginBottom: 15,
+                    color: "#991b1b",
+                    fontSize: "0.85rem",
+                  },
+                },
+                "⚠️ " + error,
+              ),
+            !scanning
+              ? React.createElement(
+                  "div",
+                  { style: { textAlign: "center", padding: "40px 20px" } },
+                  React.createElement(
+                    "div",
+                    {
+                      style: {
+                        fontSize: "4rem",
+                        marginBottom: 20,
+                        animation: "float 3s ease-in-out infinite",
+                      },
+                    },
+                    "📷",
+                  ),
+                  React.createElement(
+                    "p",
+                    {
+                      style: {
+                        color: "var(--ww-text-secondary)",
+                        marginBottom: 25,
+                        lineHeight: 1.6,
+                      },
+                    },
+                    "Placez le QR code d'un badge devant votre caméra pour le vérifier.",
+                  ),
+                  React.createElement(
+                    "button",
+                    {
+                      className: "btn btn-primary",
+                      onClick: () => setScanning(true),
+                    },
+                    "📷 Activer la caméra",
+                  ),
+                  React.createElement(
+                    "button",
+                    {
+                      className: "btn btn-outline",
+                      onClick: onBack,
+                      style: { marginTop: 12, width: "100%" },
+                    },
+                    "← Retour",
+                  ),
+                )
+              : React.createElement(
+                  "div",
+                  null,
+                  React.createElement("div", {
+                    id: "reader",
+                    style: {
+                      width: "100%",
+                      borderRadius: 16,
+                      overflow: "hidden",
+                      minHeight: 300,
+                    },
+                  }),
+                  React.createElement(
+                    "button",
+                    {
+                      className: "btn btn-outline",
+                      onClick: () => setScanning(false),
+                      style: { marginTop: 15, width: "100%" },
+                    },
+                    "❌ Arrêter le scan",
+                  ),
+                ),
+          ),
+        );
+      }
+
+      /* ============================================================
+         APP ROOT
+         ============================================================ */
+      function App() {
+        const [page, setPage] = useState("reservation");
+        const [badgeData, setBadgeData] = useState(null);
+        const [scanData, setScanData] = useState(null);
+        const [adminSession, setAdminSession] = useState(getAdminSession());
+
+        useEffect(() => {
+          const hash = window.location.hash.slice(1);
+          if (hash) {
+            try {
+              const data = JSON.parse(atob(hash));
+              setScanData(data);
+              setPage("scan");
+            } catch (e) {
+              console.error("Invalid QR data");
+            }
+          }
+        }, []);
+
+        const handleReservationSubmitted = () => setPage("thanks");
+        const handleBackHome = () => {
+          setPage("reservation");
+          window.location.hash = "";
+        };
+        const handleScan = (data) => {
+          setScanData(data);
+          setPage("scan");
+          window.scrollTo(0, 0);
+        };
+        const handleOpenScanner = () => {
+          setPage("scanner");
+          window.scrollTo(0, 0);
+        };
+        const handleAdminLogin = (session) => {
+          setAdminSession(session);
+          setPage("admin");
+        };
+        const handleAdminLogout = () => {
+          setAdminSession(null);
+          setPage("reservation");
+        };
+        const handleGoAdmin = () => {
+          if (adminSession && adminSession.loggedIn) setPage("admin");
+          else setPage("adminLogin");
+        };
+
+        const showFabs =
+          page !== "scanner" &&
+          page !== "scan" &&
+          page !== "admin" &&
+          page !== "adminLogin";
+
+        return React.createElement(
+          "div",
+          null,
+          React.createElement(ThemeToggle),
+          React.createElement(WaveBackground),
+          React.createElement(BrandWatermark),
+          page === "reservation" &&
+            React.createElement(ReservationPage, {
+              onSubmitted: handleReservationSubmitted,
+            }),
+          page === "thanks" &&
+            React.createElement(ThanksPage, { onBack: handleBackHome }),
+          page === "scan" && React.createElement(ScanPage, { data: scanData }),
+          page === "scanner" &&
+            React.createElement(ScannerPage, {
+              onScan: handleScan,
+              onBack: handleBackHome,
+            }),
+          page === "adminLogin" &&
+            React.createElement(AdminLoginPage, {
+              onLogin: handleAdminLogin,
+              onBack: handleBackHome,
+            }),
+          page === "admin" &&
+            React.createElement(AdminDashboard, {
+              onLogout: handleAdminLogout,
+            }),
+          showFabs &&
+            React.createElement(
+              "div",
+              null,
+              React.createElement(
+                "button",
+                {
+                  className: "fab fab-home",
+                  onClick: handleBackHome,
+                  title: "Accueil",
+                },
+                "🏠",
+              ),
+              adminSession &&
+                adminSession.loggedIn &&
+                React.createElement(
+                  "button",
+                  {
+                    className: "fab fab-scan",
+                    onClick: handleOpenScanner,
+                    title: "Scanner QR",
+                  },
+                  "📷",
+                ),
+              React.createElement(
+                "button",
+                {
+                  className: "fab fab-admin",
+                  onClick: handleGoAdmin,
+                  title: "Espace Admin",
+                },
+                "🔐",
+              ),
+            ),
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(React.createElement(App));
+    </script>
+  </body>
+</html>
