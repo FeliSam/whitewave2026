@@ -1984,6 +1984,45 @@
       .ww-chat-form{flex:0 0 auto!important;padding-bottom:max(12px,env(safe-area-inset-bottom,0px))!important}
     }
 
+
+    /* =========================================================
+       V3.2.5 — Bouton central mobile Réserver
+       ========================================================= */
+    .mobile-bottom-nav .mobile-nav-center{
+      position:relative;
+      margin-top:-24px;
+      min-height:66px;
+      border-radius:24px;
+      color:#00111f;
+      background:linear-gradient(135deg,var(--ww-cyan),var(--ww-blue));
+      box-shadow:0 18px 45px rgba(14,165,233,.34);
+      transform:translateY(-3px);
+      border:2px solid rgba(255,255,255,.88);
+      font-size:10px;
+    }
+    .mobile-bottom-nav .mobile-nav-center:hover,
+    .mobile-bottom-nav .mobile-nav-center.active{
+      color:#00111f;
+      background:linear-gradient(135deg,var(--ww-cyan),var(--ww-blue));
+      filter:brightness(1.03);
+    }
+    .mobile-nav-center-icon{
+      width:28px;
+      height:28px;
+      border-radius:999px;
+      display:grid;
+      place-items:center;
+      background:rgba(255,255,255,.90);
+      font-size:22px;
+      line-height:1;
+      font-weight:1000;
+      box-shadow:0 8px 18px rgba(15,23,42,.14);
+    }
+    @media(max-width:760px){
+      .shell{padding-bottom:116px}
+      .mobile-bottom-nav{grid-template-columns:repeat(5,minmax(0,1fr))}
+    }
+
   </style>
 </head>
 <body>
@@ -3407,11 +3446,32 @@
     function renderMobileBottomNav(){
       const mode=activeTheme()==="dark"?"sun":"moon";
       return `<nav class="mobile-bottom-nav" aria-label="Navigation mobile principale">
-        <button class="${route.page==="reservation"||route.page==="thanks"?"active":""}" onclick="nav('reservation')">${iconSVG('reservation')}<span>Reservation</span></button>
+        <button class="${route.page==="reservation"||route.page==="thanks"?"active":""}" onclick="nav('reservation')">${iconSVG('reservation')}<span>Accueil</span></button>
         <button class="${state.chatOpen?"active":""}" onclick="toggleChat()">${iconSVG('chat')}${chatUserUnreadCount()?`<span class="mobile-count">${chatUserUnreadCount()}</span>`:""}<span>Chat</span></button>
+        <button class="mobile-nav-center" onclick="openReservationPage()" aria-label="Ouvrir le formulaire de réservation"><span class="mobile-nav-center-icon">+</span><span>Réserver</span></button>
         <button onclick="toggleTheme()">${iconSVG(mode)}<span>Mode</span></button>
         <button class="${route.page==="admin"?"active":""}" onclick="nav('admin')">${iconSVG('admin')}<span>Admin</span></button>
       </nav>`;
+    }
+
+    function focusReservationForm(){
+      const form=document.getElementById("reservationForm");
+      if(!form) return;
+      form.scrollIntoView({behavior:"smooth",block:"center"});
+      const first=form.querySelector("input[name='lastName'],input,select,textarea");
+      setTimeout(()=>first?.focus?.({preventScroll:true}),350);
+    }
+
+    function openReservationPage(){
+      state.chatOpen=false;
+      state.modal=null;
+      stopScanner(false);
+      if(route.page!=="reservation"){
+        location.hash="reservation";
+        route=parseRoute();
+        render();
+      }
+      setTimeout(focusReservationForm,80);
     }
 
     function ensureChatVisitorId(){
