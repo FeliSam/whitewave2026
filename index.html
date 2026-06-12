@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>White Wave v3.2.4 — Correction boot/cache, QR, scanner et chat</title>
+  <title>White Wave v3.2.7 — Paramètres admin corrigés</title>
   <style>
     /* =========================================================
        1. VARIABLES GLOBALES / WHITE WAVE DESIGN SYSTEM
@@ -2428,7 +2428,7 @@
 
     const rolePermissions = {
       "Super Admin":["reservations.view","reservations.edit","reservations.delete","badges.generate","badges.scan","badges.cancel","admins.manage","exports","settings.manage","logs.view","chat.manage"],
-      "Admin":["reservations.view","reservations.edit","badges.generate","badges.scan","exports","logs.view","chat.manage"],
+      "Admin":["reservations.view","reservations.edit","badges.generate","badges.scan","exports","logs.view","chat.manage","settings.manage"],
       "Agent réservation":["reservations.view","reservations.edit"],
       "Agent scan":["badges.scan","reservations.view"]
     };
@@ -5807,15 +5807,8 @@ Tu peux taper /statut pour vérifier l’état de ta réservation.`,needsAdmin:f
     function renderAdmin(){
       if(!isLogged()) return renderLogin();
       const stats=getStats();
-      const tabs=[
-        ["reservations","📋 Réservations"],
-        ["participants","🎫 Participants"],
-        ["generate","✨ Générer badge"],
-        ...(can("badges.scan")?[["scanner","📷 Scanner"]]:[]),
-        ["chat",`💬 Chat${chatAdminUnreadCount()?` <span class="notify-dot">${chatAdminUnreadCount()}</span>`:""}`],
-        ["admins","👤 Admins"],
-        ["settings","⚙️ Paramètres"]
-      ];
+      const tabs=adminTabs();
+      if(!tabs.some(([key])=>key===state.adminTab)) state.adminTab="reservations";
       const content=`<section class="grid">
         <div class="v15-status-card">
           <h2>🌊 Tableau de bord White Wave</h2>
@@ -5850,11 +5843,41 @@ Tu peux taper /statut pour vérifier l’état de ta réservation.`,needsAdmin:f
         </div>
 
         <div class="card glass">
-          <div class="tabs">${tabs.map(([k,l])=>`<button class="tab ${state.adminTab===k?"active":""}" onclick="state.adminTab='${k}';render()">${l}</button>`).join("")}</div>
-          ${state.adminTab==="reservations"?adminReservations():state.adminTab==="participants"?adminParticipants():state.adminTab==="generate"?adminGenerate():state.adminTab==="scanner"?renderAdminScanner():state.adminTab==="chat"?adminChat():state.adminTab==="admins"?adminAdmins():adminSettings()}
+          <div class="tabs">${tabs.map(([k,l])=>`<button class="tab ${state.adminTab===k?"active":""}" onclick="setAdminTab('${k}')">${l}</button>`).join("")}</div>
+          ${renderAdminTabContent()}
         </div>
       </section>`;
       return adminLayout(content);
+    }
+
+    function adminTabs(){
+      return [
+        ["reservations","📋 Réservations"],
+        ["participants","🎫 Participants"],
+        ["generate","✨ Générer badge"],
+        ...(can("badges.scan")?[["scanner","📷 Scanner"]]:[]),
+        ...(can("chat.manage")?[["chat",`💬 Chat${chatAdminUnreadCount()?` <span class="notify-dot">${chatAdminUnreadCount()}</span>`:""}`]]:[]),
+        ...(can("admins.manage")?[["admins","👤 Admins"]]:[]),
+        ...(can("settings.manage")?[["settings","⚙️ Paramètres"]]:[])
+      ];
+    }
+
+    function setAdminTab(tab){
+      const allowed=new Set(adminTabs().map(([key])=>key));
+      state.adminTab=allowed.has(tab)?tab:"reservations";
+      render();
+    }
+
+    function renderAdminTabContent(){
+      if(state.adminTab === "reservations") return adminReservations();
+      if(state.adminTab === "participants") return adminParticipants();
+      if(state.adminTab === "generate") return adminGenerate();
+      if(state.adminTab === "scanner" && can("badges.scan")) return renderAdminScanner();
+      if(state.adminTab === "chat" && can("chat.manage")) return adminChat();
+      if(state.adminTab === "admins" && can("admins.manage")) return adminAdmins();
+      if(state.adminTab === "settings" && can("settings.manage")) return adminSettings();
+      state.adminTab = "reservations";
+      return adminReservations();
     }
 
     function stat(icon,value,label){return `<div class="card glass"><div class="stat"><div class="stat-icon">${icon}</div><div><strong>${value}</strong><span>${esc(label)}</span></div></div></div>`}
@@ -6153,11 +6176,12 @@ Tu peux taper /statut pour vérifier l’état de ta réservation.`,needsAdmin:f
           <div class="diagnostic-card"><div class="diagnostic-icon">🧷</div><div><strong>${dirty.length}</strong><div class="small">éléments mémoire à pousser</div></div></div>
         </div>
         ${supabaseTableStatusHTML()}
-        ${supabaseRecentErrorsHTML()}
+        ${supabaseErrorsHTML()}
       </div>`;
     }
 
     function adminSettings(){
+      if(!can("settings.manage")) return `<div class="empty">Accès refusé : seul un Super Admin ou Admin autorisé peut modifier les paramètres.</div>`;
       const c=config();
       return `<div class="grid cols-2">
         <div>
