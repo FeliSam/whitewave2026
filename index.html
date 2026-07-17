@@ -9626,6 +9626,17 @@ async function startScanner(){
       organisateur:{name:{x:332,y:845,w:560,h:112},qr:{x:401,y:1188,size:190,inner:176,radius:18},code:{x:348,y:1452,w:340,h:40}}
     });
     const WW_QR_MATRIX_UNITS_V8 = 41;
+    /* Couleurs d'accent premium distinctes par pack (nom + code du badge).
+       Le fond PNG est figé : on différencie les badges par la couleur des textes. */
+    const WW_BADGE_ACCENT_DEFAULT_V8 = "#F7D783"; // doré classique (participants standard)
+    const WW_BADGE_ACCENTS_V8 = Object.freeze({
+      couple_vip:       "#F4B7C6", // rose gold — Couple VIP
+      sponsor_officiel: "#BFE3E0", // platine turquoise — Sponsor
+      vip_golden_foam:  "#FFB65C"  // or ambré chaud — VIP Golden Foam
+    });
+    function wwBadgeAccentColor(key){
+      return WW_BADGE_ACCENTS_V8[key] || WW_BADGE_ACCENT_DEFAULT_V8;
+    }
 
     function wwBadgeTitleCaseWordV8(v){
       const s=String(v||'').trim().toLowerCase();
@@ -9761,7 +9772,7 @@ async function startScanner(){
       const metrics = tpl.metrics || WW_BADGE_LAYOUTS_V8.participant_homme;
       const nameSize = wwBadgeTextSizeV8(name, tpl.key);
       const codeSize = wwBadgeCodeSizeV8(code);
-      return `<div class="ww-photo-badge ww-photo-badge-v8 ${escAttr(tpl.cls)}" data-pack="${escAttr(tpl.key)}" style="--name-left:${metrics.name.x}px;--name-top:${metrics.name.y}px;--name-width:${metrics.name.w}px;--name-height:${metrics.name.h}px;--name-size:${nameSize}px;--qr-left:${metrics.qr.x}px;--qr-top:${metrics.qr.y}px;--qr-size:${metrics.qr.size}px;--code-left:${metrics.code.x}px;--code-top:${metrics.code.y}px;--code-width:${metrics.code.w}px;--code-height:${metrics.code.h}px;--code-size:${codeSize}px;">
+      return `<div class="ww-photo-badge ww-photo-badge-v8 ${escAttr(tpl.cls)}" data-pack="${escAttr(tpl.key)}" style="--accent:${wwBadgeAccentColor(tpl.key)};--name-left:${metrics.name.x}px;--name-top:${metrics.name.y}px;--name-width:${metrics.name.w}px;--name-height:${metrics.name.h}px;--name-size:${nameSize}px;--qr-left:${metrics.qr.x}px;--qr-top:${metrics.qr.y}px;--qr-size:${metrics.qr.size}px;--code-left:${metrics.code.x}px;--code-top:${metrics.code.y}px;--code-width:${metrics.code.w}px;--code-height:${metrics.code.h}px;--code-size:${codeSize}px;">
         <img class="ww-photo-bg" src="${tpl.img}" alt="Badge ${escAttr(pack.label)}">
         <div class="ww-photo-name">${esc(name)}</div>
         <div class="ww-photo-qr">${safeQrSVG(p,4)}</div>
@@ -9783,11 +9794,12 @@ async function startScanner(){
       const qrX = metrics.qr.x + ((qrSize - qrInner) / 2);
       const qrY = metrics.qr.y + ((qrSize - qrInner) / 2);
       const qrBgPad = 8;
+      const accent = wwBadgeAccentColor(tpl.key);
       return `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1536" viewBox="0 0 1024 1536">
         <defs>
           <style>
-            .ww-name{font-family:Arial,Helvetica,sans-serif;font-weight:800;fill:#F7D783;letter-spacing:.012em}
-            .ww-code{font-family:Arial,Helvetica,sans-serif;font-weight:800;fill:#F7D783;letter-spacing:.08em}
+            .ww-name{font-family:Arial,Helvetica,sans-serif;font-weight:800;fill:${accent};letter-spacing:.012em}
+            .ww-code{font-family:Arial,Helvetica,sans-serif;font-weight:800;fill:${accent};letter-spacing:.08em}
           </style>
         </defs>
         <image href="${tpl.img}" x="0" y="0" width="1024" height="1536" />
@@ -9812,7 +9824,7 @@ async function startScanner(){
       .ww-photo-badge-v8 .ww-photo-name{
         left:var(--name-left);top:var(--name-top);width:var(--name-width);height:var(--name-height);
         display:flex;align-items:center;justify-content:center;text-align:center;
-        padding:0 20px;color:#F7D783;font-weight:800;font-size:var(--name-size);line-height:1.05;
+        padding:0 20px;color:var(--accent,#F7D783);font-weight:800;font-size:var(--name-size);line-height:1.05;
         letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
         text-shadow:0 1px 1px rgba(0,0,0,.20)
       }
@@ -9821,7 +9833,7 @@ async function startScanner(){
       .ww-photo-badge-v8 .ww-photo-code{
         left:var(--code-left);top:var(--code-top);width:var(--code-width);height:var(--code-height);
         display:flex;align-items:center;justify-content:center;text-align:center;
-        padding:0 16px;color:#F7D783;font-weight:800;font-size:var(--code-size);line-height:1;letter-spacing:.08em;
+        padding:0 16px;color:var(--accent,#F7D783);font-weight:800;font-size:var(--code-size);line-height:1;letter-spacing:.08em;
         white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;
         text-shadow:0 1px 1px rgba(0,0,0,.20)
       }
