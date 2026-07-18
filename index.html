@@ -9473,7 +9473,10 @@ async function startScanner(){
     function wwBadgeDisplayName(p,res,pack){
       const sponsor = wwBadgeSponsorData(res);
       if(pack.category==='Sponsor'){
-        return String(sponsor.companyName || res?.companyName || p.companyName || 'Votre entreprise').trim();
+        const company = String(sponsor.companyName || res?.companyName || p.companyName || '').trim();
+        if(company) return company;
+        // Pas de nom d'entreprise : on affiche le nom de la personne (au lieu de 'Votre entreprise').
+        return wwBadgeCompactName(res?.firstName||p.firstName||'', res?.lastName||p.lastName||'', fullName(p) || 'D. Samuel');
       }
       if(pack.people>1 && res){
         const guests = wwBuildGuestsFromReservation(res);
