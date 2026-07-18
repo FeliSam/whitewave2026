@@ -8646,7 +8646,7 @@ function badgeTemplateSVG(role){
       if(!key || /^data:/i.test(key)) return Promise.resolve(key);
       const embedded=window.WW_BADGE_EXPORT_DATA_V9?.[key];
       if(embedded) return Promise.resolve(embedded);
-      return fetch(new URL(key,document.baseURI).href)
+      return fetch(new URL(wwVer(key),document.baseURI).href)
         .then(response=>{
           if(!response.ok) throw new Error("Image de fond introuvable pour l'export.");
           return response.blob();
@@ -9605,6 +9605,15 @@ async function startScanner(){
     /* =========================================================
        V22 — Nouveaux badges officiels + filtres sexe + correctif messagerie
        ========================================================= */
+    /* ===== Cache-busting des images de badge =====
+       Quand tu remplaces une image en gardant le meme nom de fichier,
+       INCREMENTE ce numero (3 -> 4 -> 5 ...) puis commit/push.
+       Cela force les navigateurs a retelecharger la nouvelle image. */
+    const WW_ASSET_VERSION_V8 = "3";
+    function wwVer(path){
+      if(!path || /^data:/i.test(path)) return path;
+      return path + (path.includes("?") ? "&" : "?") + "v=" + WW_ASSET_VERSION_V8;
+    }
     const WW_BADGE_TEMPLATE_IMAGES_V8 = Object.freeze({
       "sponsor_officiel": "assets/badges/sponsor_officiel.png",
       "organisateur": "assets/badges/organisateur.png",
@@ -9773,7 +9782,7 @@ async function startScanner(){
       const nameSize = wwBadgeTextSizeV8(name, tpl.key);
       const codeSize = wwBadgeCodeSizeV8(code);
       return `<div class="ww-photo-badge ww-photo-badge-v8 ${escAttr(tpl.cls)}" data-pack="${escAttr(tpl.key)}" style="--accent:${wwBadgeAccentColor(tpl.key)};--name-left:${metrics.name.x}px;--name-top:${metrics.name.y}px;--name-width:${metrics.name.w}px;--name-height:${metrics.name.h}px;--name-size:${nameSize}px;--qr-left:${metrics.qr.x}px;--qr-top:${metrics.qr.y}px;--qr-size:${metrics.qr.size}px;--code-left:${metrics.code.x}px;--code-top:${metrics.code.y}px;--code-width:${metrics.code.w}px;--code-height:${metrics.code.h}px;--code-size:${codeSize}px;">
-        <img class="ww-photo-bg" src="${tpl.img}" alt="Badge ${escAttr(pack.label)}">
+        <img class="ww-photo-bg" src="${wwVer(tpl.img)}" alt="Badge ${escAttr(pack.label)}">
         <div class="ww-photo-name">${esc(name)}</div>
         <div class="ww-photo-qr">${safeQrSVG(p,4)}</div>
         <div class="ww-photo-code">${esc(code)}</div>
